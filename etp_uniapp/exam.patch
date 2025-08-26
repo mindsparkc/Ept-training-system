@@ -1,0 +1,475 @@
+From 66b9019a08df90327b0c9c2f8e2b91a4a5a966e4 Mon Sep 17 00:00:00 2001
+From: Yuki <ylqecho@163.com>
+Date: Mon, 16 Jan 2023 11:46:08 +0800
+Subject: [PATCH] =?UTF-8?q?-alter=20=E8=80=83=E8=AF=95=E9=98=B2=E4=BD=9C?=
+ =?UTF-8?q?=E5=BC=8A=EF=BC=9A=E9=95=BF=E6=97=B6=E9=97=B4=E6=9C=AA=E6=93=8D?=
+ =?UTF-8?q?=E4=BD=9C&=E5=88=87=E5=B1=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+---
+ src/pages/exam/examIndex/examIndex.vue |  24 +--
+ src/pages/exam/examine/examine.vue     | 260 ++++++++++++++++++++++---
+ 2 files changed, 250 insertions(+), 34 deletions(-)
+
+diff --git a/src/pages/exam/examIndex/examIndex.vue b/src/pages/exam/examIndex/examIndex.vue
+index 07ac7b7..c1a59ad 100644
+--- a/src/pages/exam/examIndex/examIndex.vue
++++ b/src/pages/exam/examIndex/examIndex.vue
+@@ -36,8 +36,8 @@
+ 				<view class="flex-row">
+ 					<text class="text-title">考试时间</text>
+ 
+-					<text class="text-content">{{ $u.timeFormat(formatTime(data.kskssj), 'yyyy-mm-dd hh:MM:ss')}} 
+-					至
++					<text class="text-content">{{ $u.timeFormat(formatTime(data.kskssj), 'yyyy-mm-dd hh:MM:ss')}}
++						至
+ 						{{ $u.timeFormat(formatTime(data.ksjssj), 'yyyy-mm-dd hh:MM:ss')}}</text>
+ 				</view>
+ 				<view class="flex-row">
+@@ -79,7 +79,7 @@
+ 
+ 			<view class="flex-row-between">
+ 				<view class="btn-second" hover-class="u-hover-class" @click="catHistory()">查看历史</view>
+-				
++
+ 				<view class="btn-time-normal">
+ 					<view class="text-time-tips">
+ 						<text>{{timeText}}{{time}}</text>
+@@ -121,7 +121,7 @@
+ 	export default {
+ 		data() {
+ 			return {
+-				showScoreTime:"",
++				showScoreTime: "",
+ 				showCountDownPopup: false,
+ 				examId: 0, //考试ID
+ 				userInfo: {}, //用户信息
+@@ -275,32 +275,34 @@
+ 			//开始考试
+ 			examBegin() {
+ 				switch (this.status) {
+-					case 0://考试未开始
++					case 0: //考试未开始
+ 						//弹窗提示时间
+ 						if (!this.showCountDownPopup) {
+ 							this.showCountDownPopup = true;
+ 						}
+ 
+ 						break;
+-					case 1://开始考试
+-					let scoreTime = "";
+-					scoreTime = this.data.showScoreTime?this.data.showScoreTime:"";
++					case 1: //开始考试
++						let scoreTime = "";
++						scoreTime = this.data.showScoreTime ? this.data.showScoreTime : "";
+ 						uni.navigateTo({
+ 							url: '/pages/exam/examine/examine?examId=' + this.examId + "&paperId=" + this.data
+ 								.sjid +
+-								"&examTitle=" + this.data.mc + "&examTime=" + this.data.djsc+"&showScoreTime"+scoreTime,
++								"&examTitle=" + this.data.mc + "&examTime=" + this.data.djsc + "&showScoreTime" +
++								scoreTime + "&turnThreshold=" + this.data.turnThreshold + "&noactionTimeout=" +
++								this.data.noactionTimeout,
+ 							success: res => {},
+ 							fail: () => {},
+ 							complete: () => {}
+ 						});
+ 						break;
+-					case 2://考试已经结束
++					case 2: //考试已经结束
+ 						uni.showToast({
+ 							title: '考试已结束',
+ 							icon: 'none'
+ 						});
+ 						break;
+-					case 3://考试次数用尽
++					case 3: //考试次数用尽
+ 						uni.showToast({
+ 							title: '考试次数已用尽',
+ 							icon: 'none'
+diff --git a/src/pages/exam/examine/examine.vue b/src/pages/exam/examine/examine.vue
+index 05922b7..1213b1a 100644
+--- a/src/pages/exam/examine/examine.vue
++++ b/src/pages/exam/examine/examine.vue
+@@ -1,6 +1,6 @@
+ <!-- 考试主页面页面  -->
+ <template>
+-	<view class="page">
++	<view class="page" @touchstart="touchStart()">
+ 		<view class="header">
+ 			<view class="cd-top">
+ 				<view style="margin-right: 6rpx;">
+@@ -102,9 +102,8 @@
+ 				<text class="text-popup-subtitle"> 是否确认交卷</text>
+ 				<image src="../../../static/exam/icon-exam-done.png" class="img-done"></image>
+ 
+-				<text class="text-popup-tips"> 考试剩余时间 {{timeData.minutes}}:{{timeData.seconds}}</text>
+-				<!-- <text class="text-popup-tips text-popup-tips-small"> 考试中不允许随意退出</text>
+-				<text class="text-popup-tips"> 已完成考试 您可以选择交卷</text> -->
++				<text class="text-popup-tips"> 考试剩余时间 {{timeData.days!=0?timeData.days+'天':''}} {{timeData.hours}}:{{timeData.minutes}}:{{timeData.seconds}}</text>
++
+ 				<text class="text-popup-tips"> 文明考风 诚信考试 </text>
+ 				<view class="flex-row-between">
+ 					<view class="btn-normal" hover-class="u-hover-class" @click="showDonePopup=false">暂不交卷</view>
+@@ -120,9 +119,8 @@
+ 				<text class="text-popup-subtitle"> 是否确认交卷</text>
+ 				<image src="../../../static/exam/icon-exam-undone.png" class="img-done"></image>
+ 
+-				<text class="text-popup-tips"> 考试剩余时间 {{timeData.minutes}}:{{timeData.seconds}}</text>
+-				<!-- <text class="text-popup-tips text-popup-tips-small"> 考试中不允许随意退出</text>
+-				<text class="text-popup-tips"> 若要退出考试 您可以交卷</text> -->
++				<text class="text-popup-tips"> 考试剩余时间 {{timeData.days!=0?timeData.days+'天':''}} {{timeData.hours}}:{{timeData.minutes}}:{{timeData.seconds}}</text>
++
+ 				<text class="text-popup-tips"> 文明考风 诚信考试 </text>
+ 
+ 				<view class="flex-row-between">
+@@ -151,9 +149,8 @@
+ 				<text class="text-popup-subtitle">退出会导致您的答题结果丢失\n到达考试时间后系统会默认为您交卷</text>
+ 				<image src="../../../static/exam/icon-exam-undone.png" class="img-done"></image>
+ 
+-				<text class="text-popup-tips"> 考试剩余时间 {{timeData.minutes}}:{{timeData.seconds}}</text>
+-				<!-- <text class="text-popup-tips text-popup-tips-small"> 考试中不允许随意退出</text>
+-						<text class="text-popup-tips"> 若要退出考试 您可以交卷</text> -->
++				<text class="text-popup-tips"> 考试剩余时间 {{timeData.days!=0?timeData.days+'天':''}} {{timeData.hours}}:{{timeData.minutes}}:{{timeData.seconds}}</text>
++
+ 				<text class="text-popup-tips"> 文明考风 诚信考试 </text>
+ 
+ 				<view class="flex-row-between">
+@@ -164,6 +161,60 @@
+ 			</view>
+ 		</u-popup>
+ 
++		<u-loading-page loading-text="考试载入中" loading-mode="spinner" :loading="!isLoaded"></u-loading-page>
++		<u-notify ref="handMinTime"></u-notify>
++		<!-- 考试作弊提示 -->
++		<!-- 切屏作弊提示 -->
++		<u-notify ref="cheat"></u-notify>
++		<!-- 长时间不操作提示 -->
++		<u-notify ref="outTime"></u-notify>
++		<!-- 切屏次数将要达到上限弹窗提示 -->
++		<u-popup :show="showCheatTipsPopup" mode="center" round="20">
++			<view class="flex-row-center">
++				<text class="text-popup-title-red">郑重警告</text>
++				<text class="k-text-md k-text-black k-margin-top-m">{{sysTips}}</text>
++				<uni-icons type="clear" size="150" color="#E91A1B"></uni-icons>
++
++				<text class="text-popup-tips" v-if="examTime"> 考试剩余时间{{timeData.days!=0?timeData.days+'天':''}} {{timeData.hours}}:{{timeData.minutes}}:{{timeData.seconds}}</text>
++				<text class="text-popup-tips"> 文明考风 诚信考试 </text>
++
++				<view class="flex-row-between">
++
++					<view class="btn-primary" style="background:#E91A1B" hover-class="u-hover-class"
++						@click="showCheatTipsPopup=false">本人已知晓</view>
++				</view>
++
++			</view>
++		</u-popup>
++		<!-- 切屏次数将已达到上限弹窗提示  不允许点击关闭-->
++		<u-popup :show="showCheatHeadPaperTipsPopup" mode="center" round="20" :closeOnClickOverlay="false">
++			<view class="flex-row-center">
++				<text class="text-popup-title-red">切屏次数已达上限</text>
++				<text class="text-popup-subtitle"> 请停止操作即将为您交卷...</text>
++				<view style="margin-top: 20rpx;">
++					<u-loading-icon color="#E91A1B"></u-loading-icon>
++				</view>
++				<image src="../../../static/exam/icon-count-down.png" class="img-count-done"></image>
++				<text class="text-popup-tips"> 文明考风 诚信考试 </text>
++
++			</view>
++		</u-popup>
++		<u-popup :show="showTimeoutHeadPaperTipsPopup" mode="center" round="20" :closeOnClickOverlay="false">
++			<view class="flex-row-center">
++				<text class="text-popup-title-red" style="width: 80%;">长时间未操作提醒</text>
++				<text class="text-popup-subtitle">系统检测到您长时间未进行操作\n若{{leaveTimeChange}}后仍未操作将为您交卷处理</text>
++				<view style="margin-top: 20rpx;">
++					<u-loading-icon color="#E91A1B"></u-loading-icon>
++				</view>
++				<image src="../../../static/exam/icon-count-down.png" class="img-count-done"></image>
++				<!-- 设置继续考试  交卷倒计时按钮 	 -->
++				<button @click="goonExam()" class="k-btn">继续考试</button>
++				<text class="text-popup-tips"> 文明考风 诚信考试 </text>
++
++			</view>
++		</u-popup>
++
++
+ 
+ 	</view>
+ </template>
+@@ -174,6 +225,8 @@
+ 	export default {
+ 		data() {
+ 			return {
++				isLoaded: false, //是否获取
++
+ 				canExit: false, //是否可以退出考试
+ 				showScoreTime: "", //此字段有值说明考试设置的不立即显示成绩，用户交卷完成 提示此事件 若此字段没有值 说明考试设置的立即显示成绩，则交卷完成之后立即跳转到查看成绩页面
+ 
+@@ -205,14 +258,34 @@
+ 					'answer-done-select', //已做被选中
+ 				], //答题卡状态class
+ 
++				//考试防作弊 
++				hideShowCount: 0, //页面隐藏显示次数  当次数大于等于系统配置次数时提示 请勿多次切屏 次数超过xx次将立即为您交卷
++				hideShowCountRole: 0,
++				showTimeoutHeadPaperTipsPopup: false, //长时间未操作交卷
++				showCheatHeadPaperTipsPopup: false, //作弊交卷
++				showCheatTipsPopup: false, //作弊弹窗
++				sysTips: "系统检测到您考试期间切屏次数过多\n若再次切屏本次考试将按照作弊处理", //弹窗中的系统提示  用于切屏次数多  长时间无操作规则   系统检测到您考试期间长时间未操作已为您交卷处理
++				timeoutTimer: null, //用户无操作计时器
++				timeoutTime: 0, //用户无操作允许时长
++				noActiveTime: 0, //用户无操作时长
++
++				leaveTime: 30, //30s倒计时
++				leaveTimeChange: "",
++				leaveCountDownTimer: null,
++
++
+ 			}
+ 		},
+ 		onLoad(option) {
++			
+ 			this.examId = option.examId;
+ 			this.paperId = option.paperId;
+ 			this.showScoreTime = option.showScoreTime;
+ 			this.examTime = option.examTime;
+-			// this.examTime = 1
++			
++			this.hideShowCountRole = option.turnThreshold; //允许离开考试次数
++			this.timeoutTime = option.noactionTimeout; //允许无操作的时间
++			this.timeoutTime=1
+ 			this.swiperHeight = uni.getSystemInfoSync().windowHeight;
+ 			this.requestQuestionInfo();
+ 
+@@ -229,16 +302,49 @@
+ 
+ 		},
+ 		onHide() {
+-			console.log("onhide");
++			this.hideShowCount++
+ 
+ 		},
+ 		onUnload() {
+-			console.log("onUnload");
++			clearInterval(this.timeoutTimer)
++			clearInterval(this.leaveCountDownTimer)
++
++			this.timeoutTimer = null;
++			this.leaveCountDownTimer = null;
+ 
+ 		},
+ 		onShow() {
+-			console.log("onShow");
+-
++			//首次切屏时使用顶部弹窗提示不允许切屏  当多次切屏时 使用popup提示
++			//判断切屏次数  小于hideShowCountRole时弹窗警告一次 大于等于hideShowCountRole直接提示交卷
++			if (this.hideShowCountRole) {
++
++				let currentCount = this.hideShowCount;
++				let totalCount = this.hideShowCountRole;
++				if (currentCount == (totalCount - 1)) { //弹窗提示警告
++
++					// 考试过程中请保持App前台运行,系统检测您切屏次数过多,n次切屏后系统将为您强制交卷
++					this.showCheatTipsPopup = true;
++				} else if (currentCount >= totalCount) { //弹窗提示并交卷
++					this.showCheatHeadPaperTipsPopup = true;
++
++					setTimeout(() => {
++						this.showCheatHeadPaperTipsPopup = false;
++						//交卷 
++						this.handPaper()
++
++					}, 3000)
++					//TODO  作弊处理
++				} else if (currentCount >= 1) {
++					//每一次切屏顶部弹窗提示
++					this.$refs.cheat.show({
++						top: 10,
++						type: 'warning',
++						message: '警告：考试期间不允许切屏，切屏次数大于' + totalCount + '次按作弊处理',
++						duration: 1000 * 3,
++
++					})
++				}
++			}
+ 
+ 		},
+ 		onBackPress(e) {
+@@ -263,7 +369,6 @@
+ 			//退出考试
+ 			exitExam() {
+ 				this.canExit = true;
+-				console.log("exitExam");
+ 				uni.navigateBack({
+ 					delta: 2
+ 				});
+@@ -279,7 +384,6 @@
+ 
+ 			//倒计时结束
+ 			onFinish() {
+-				console.log("时间到");
+ 				//时间到 关闭弹窗
+ 				this.closeAllPopup();
+ 				//打开交卷弹窗  并在3秒后交卷
+@@ -312,7 +416,18 @@
+ 					ksid: this.examId
+ 				}
+ 				uni.$u.api.getExamQuestions(params).then(res => {
++					if (res.data) {
++						this.isLoaded = true;
++					}
+ 					this.examInfo = res.data;
++				
++					if (this.timeoutTime) {
++					
++						//启动无操作定时器
++						this.onTouchTimeoutLinstener();
++					}
++
++
+ 					uni.setNavigationBarTitle({
+ 						title: this.examInfo.examination.mc
+ 					});
+@@ -430,7 +545,6 @@
+ 			handPaper() {
+ 				this.showDonePopup = false;
+ 				this.showUnDonePopup = false;
+-				console.log(">>>examid", this.examId);
+ 				this.submitPaper()
+ 
+ 			},
+@@ -472,11 +586,13 @@
+ 					} else {
+ 						//交卷失败 
+ 						uni.hideLoading()
+-						
+-						
++
++
+ 						//定时重新交卷
+-						setTimeout(()=> {	this.submitPaper();}, 1000);
+-					
++						setTimeout(() => {
++							this.submitPaper();
++						}, 1000);
++
+ 					}
+ 
+ 
+@@ -504,8 +620,88 @@
+ 			//返回时间戳
+ 			formatTime(time) {
+ 				return (new Date(time)).getTime();;
+-			}
++			},
++
++
++			//用户触摸事件
++			touchStart() {
++				this.noActiveTime = 0;
++
++			},
++			//用户长时间无操作
++			onTouchTimeoutLinstener() {
++
++				this.$refs.outTime.show({
++					top: 10,
++					type: 'warning',
++					message: '长时无操作定时器已开启，若' + this.timeoutTime + "分钟未操作系统将直接为您交卷",
++					duration: 1000 * 3,
++
++				})
++				this.startTimeoutTimer();
++
++			},
++			//开启长时间无操作定时器
++			startTimeoutTimer() {
++				//初始化
++				if (this.timeoutTimer) {
++					clearInterval(this.timeoutTimer)
++					this.timeoutTimer = null;
++					this.noActiveTime = 0;
++				}
++				this.timeoutTimer = setInterval(() => {
++					this.noActiveTime++;
++					if (this.noActiveTime / 60 >= (this.timeoutTime)) {
++
++						//交卷弹窗 
++						this.showTimeoutHeadPaperTipsPopup = true;
+ 
++						this.leaveCountDown(); //开启交卷倒计时
++
++					}
++
++				}, 1000); //定时1s一次
++			},
++			leaveCountDown() {
++				if (this.leaveTime != 0) {
++					if (this.leaveCountDownTimer) {
++						clearInterval(this.leaveCountDownTimer);
++						this.leaveCountDownTimer = null;
++					}
++					if (this.timeoutTimer) {
++						clearInterval(this.timeoutTimer)
++						this.timeoutTimer = null;
++						this.noActiveTime = 0;
++					}
++					let limitTime = 30;
++					this.leaveCountDownTimer = setInterval(() => {
++						limitTime--;
++
++						this.leaveTimeChange = limitTime + 's';
++						if (limitTime == 0) {
++							this.showTimeoutHeadPaperTipsPopup = false; //关闭弹窗
++							//交卷
++							this.handPaper()
++						}
++					}, 1000);
++
++				}
++			},
++			//超时继续考试
++			goonExam() {
++				//关闭弹窗
++				this.showTimeoutHeadPaperTipsPopup = false;
++				//初始化时间不活动时间为0s
++				this.noActiveTime = 0;
++				//暂停倒计时交卷定时器
++				if (this.leaveCountDownTimer) {
++					clearInterval(this.leaveCountDownTimer);
++					this.leaveCountDownTimer = null;
++				}
++				//重新开启长时间无操作计时器
++				this.startTimeoutTimer();
++
++			}
+ 
+ 		}
+ 	}
+@@ -764,4 +960,22 @@
+ 		width: 32rpx;
+ 		height: 32rpx;
+ 	}
++	.k-btn {
++	
++		color: #fff;
++		border-radius: 10px;
++		font-size: 34rpx;
++		box-shadow: 0px 2px 5px 0px rgba(22, 99, 255, 0.1);
++		background: -webkit-linear-gradient(to left, #007DFF, #5EC4F9);
++		background: linear-gradient(to left, #007DFF, #5EC4F9);
++	
++	}
++	
++	
++	
++	/*按钮点击效果*/
++	.k-btn.button-hover {
++		background: -webkit-linear-gradient(to right, #007DFF, #5EC4F9);
++		background: linear-gradient(to right, #007DFF, #5EC4F9);
++	}
+ </style>
+-- 
+2.30.1.windows.1
+

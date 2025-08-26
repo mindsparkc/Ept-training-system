@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.curriculum.mapper.TCurriculumCompanyWithCpMapper">
+
+    <resultMap type="TCurriculumCompanyWithCp" id="TCurriculumCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="cid"    column="cid"    />
+        <result property="qyid"    column="qyid"    />
+    </resultMap>
+
+
+    <insert id="insertTCurriculumCompany" parameterType="TCurriculumCompanyWithCp" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_curriculum_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cid != null">cid,</if>
+            <if test="qyid != null">qyid,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cid != null">#{cid},</if>
+            <if test="qyid != null">#{qyid},</if>
+        </trim>
+    </insert>
+
+</mapper>

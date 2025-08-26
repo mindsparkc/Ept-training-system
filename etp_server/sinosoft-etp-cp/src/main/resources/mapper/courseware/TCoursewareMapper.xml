@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.courseware.mapper.TCoursewareWithCpMapper">
+
+    <resultMap type="TCoursewareWithCp" id="TCoursewareResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fm" column="fm"/>
+        <result property="xs" column="xs"/>
+        <result property="lj" column="lj"/>
+        <result property="nr" column="nr"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="learnTime" column="learn_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="categoryId" column="categoryId"/>
+        <result property="categoryName" column="categoryName"/>
+        <result property="metaData" column="meta_data"/>
+        <result property="suffix" column="suffix"/>
+        <result property="createUserId" column="create_user_id"/>
+        <result property="departmentId" column="department_id"/>
+        <result property="tenantId" column="tenant_id"/>
+        <result property="pubFlag" column="pub_flag"/>
+    </resultMap>
+
+    <sql id="selectTCoursewareVo">
+        SELECT  t.id,
+               t.mc,
+               t.ms,
+               t.fm,
+               t.xs,
+               t.lj,
+               t.nr,
+               t.kjdz,
+               t.kfcd,
+               t.kjwjmc,
+               t.learn_time,
+               t.del_flag,
+               t.create_by,
+               t.create_time,
+               t.update_by,
+               t.update_time,
+               t.remark,
+               t.categoryId,
+               t.meta_data,
+               t.suffix,
+               t.pub_flag,
+               /*tg.name as categoryName,*/
+               GROUP_CONCAT(DISTINCT cat.name SEPARATOR ',') categoryName,
+               GROUP_CONCAT(DISTINCT tt.name SEPARATOR ',') tags
+        FROM t_courseware t
+        <!--LEFT JOIN t_courseware_company tc ON t.id = tc.kjid
+        LEFT JOIN sys_user u ON u.user_id = tc.qyid
+        LEFT JOIN sys_dept d ON d.dept_id = tc.qyid-->
+        LEFT JOIN t_courseware_tag st ON t.id = st.kjid
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+        <!--left join t_category tg on tg.id = t.categoryId
+        fix:类别bug-->
+        LEFT JOIN courseware_inter_category tc on tc.obj_id = t.id
+        LEFT JOIN courseware_category cat on cat.cat_id = tc.cat_id
+    </sql>
+
+    <select id="selectTCoursewareList" parameterType="TCoursewareWithCp" resultMap="TCoursewareResult">
+        <include refid="selectTCoursewareVo"/>
+        <where>
+            <if test="mc != null  and mc != ''">AND t.mc like concat('%', #{mc}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                AND t.id IN (
+                SELECT
+                st.kjid
+                FROM
+                t_courseware_tag st
+                WHERE
+                st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.kjid
+                <!--HAVING
+                count( st.kjid ) = #{params.tagsCount}-->
+                )
+            </if>
+            <if test="ms != null  and ms != ''">AND t.ms like concat('%', #{ms}, '%')</if>
+            <if test="fm != null  and fm != ''">AND t.fm = #{fm}</if>
+            <if test="xs != null  and xs != ''">AND t.xs = #{xs}</if>
+            <if test="lj != null  and lj != ''">AND t.lj = #{lj}</if>
+            <if test="nr != null  and nr != ''">AND t.nr = #{nr}</if>
+            <if test="kfcd != null  and kfcd != ''">AND t.kfcd = #{kfcd}</if>
+            AND t.del_flag = '0'
+            <!--<if test="categoryId != null and categoryId != 1">
+                AND (t.categoryId = #{categoryId} OR
+                t.categoryId IN ( SELECT cy.id FROM t_category cy WHERE find_in_set(#{categoryId}, ancestors) ))
+            </if>-->
+            <!-- 如果有分类，判断是否位于分类内 -->
+            <if test="categoryId != null  and categoryId!='' and categoryId != '0' and categoryId != '-1'"> and t.id in (
+                select qic.obj_id from courseware_inter_category qic, courseware_category qc
+                where qic.cat_id = qc.cat_id and (qic.cat_id = #{categoryId} or find_in_set(#{categoryId}, qc.ancestors))
+                )
+            </if>
+            <!-- 未分类 -->
+            <if test="categoryId == '-1'">
+                and not exists(select 1 from courseware_inter_category qic where t.id = qic.obj_id)
+            </if>
+            <!-- 数据权限控制 -->
+            <!--
+           <if test="params.dataScope != null and params.dataScope != ''">${params.dataScope}</if>
+            -->
+           <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY t.id
+        ORDER BY t.update_time DESC
+    </select>
+
+    <select id="selectTCoursewareById" parameterType="Long" resultMap="TCoursewareResult">
+        <include refid="selectTCoursewareVo"/>
+        WHERE t.id = #{id}
+    </select>
+
+    <insert id="insertTCourseware" parameterType="TCoursewareWithCp" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_courseware
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+           <if test="mc != null">mc,</if>
+           <if test="ms != null">ms,</if>
+           <if test="fm != null">fm,</if>
+           <if test="xs != null">xs,</if>
+           <if test="lj != null">lj,</if>
+           <if test="nr != null">nr,</if>
+           <if test="kfcd != null">kfcd,</if>
+           <if test="kjdz != null">kjdz,</if>
+           <if test="learnTime != null">learn_time,</if>
+           <if test="kjwjmc != null">kjwjmc,</if>
+           <if test="delFlag != null">del_flag,</if>
+           <if test="createBy != null">create_by,</if>
+           <if test="createTime != null">create_time,</if>
+           <if test="updateBy != null">update_by,</if>
+           <if test="updateTime != null">update_time,</if>
+           <if test="remark != null">remark,</if>
+           <if test="categoryId != null">categoryId,</if>
+           <if test="suffix != null">suffix,</if>
+            /*数据权限字段*/
+           <if test="createUserId != null">create_user_id,</if>
+           <if test="departmentId != null">department_id,</if>
+           <if test="tenantId != null">tenant_id,</if>
+           <if test="pubFlag != null">pub_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+           <if test="mc != null">#{mc},</if>
+           <if test="ms != null">#{ms},</if>
+           <if test="fm != null">#{fm},</if>
+           <if test="xs != null">#{xs},</if>
+           <if test="lj != null">#{lj},</if>
+           <if test="nr != null">#{nr},</if>
+           <if test="kfcd != null">#{kfcd},</if>
+           <if test="kjdz != null">#{kjdz},</if>
+           <if test="learnTime != null">#{learnTime},</if>
+           <if test="kjwjmc != null">#{kjwjmc},</if>
+           <if test="delFlag != null">#{delFlag},</if>
+           <if test="createBy != null">#{createBy},</if>
+           <if test="createTime != null">#{createTime},</if>
+           <if test="updateBy != null">#{updateBy},</if>
+           <if test="updateTime != null">#{updateTime},</if>
+           <if test="remark != null">#{remark},</if>
+           <if test="categoryId != null">#{categoryId},</if>
+           <if test="suffix != null">#{suffix},</if>
+
+            /*数据权限字段*/
+           <if test="createUserId != null">#{createUserId},</if>
+           <if test="departmentId != null">#{departmentId},</if>
+           <if test="tenantId != null">#{tenantId},</if>
+           <if test="pubFlag != null">#{pubFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTCourseware" parameterType="TCoursewareWithCp">
+        UPDATE t_courseware
+        <trim prefix="SET" suffixOverrides=",">
+           <if test="mc != null">mc = #{mc},</if>
+           <if test="ms != null">ms = #{ms},</if>
+           <if test="fm != null">fm = #{fm},</if>
+           <if test="xs != null">xs = #{xs},</if>
+           <if test="lj != null">lj = #{lj},</if>
+           <if test="nr != null">nr = #{nr},</if>
+           <if test="kjdz != null">kjdz = #{kjdz},</if>
+           <if test="learnTime != null">learn_time = #{learnTime},</if>
+           <if test="kjwjmc != null">kjwjmc = #{kjwjmc},</if>
+           <if test="kfcd != null">kfcd = #{kfcd},</if>
+           <if test="delFlag != null">del_flag = #{delFlag},</if>
+           <if test="createBy != null">create_by = #{createBy},</if>
+           <if test="createTime != null">create_time = #{createTime},</if>
+           <if test="updateBy != null">update_by = #{updateBy},</if>
+           <if test="updateTime != null">update_time = #{updateTime},</if>
+           <if test="remark != null">remark = #{remark},</if>
+           <if test="categoryId != null">categoryId = #{categoryId},</if>
+           <if test="suffix != null">suffix = #{suffix},</if>
+           <if test="step != null">step = #{step},</if>
+
+           <if test="pubFlag != null">pub_flag =#{pubFlag},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteTCoursewareById" parameterType="Long">
+        UPDATE t_courseware
+        SET del_flag = '1'
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteTCoursewareByIds" parameterType="String">
+        UPDATE t_courseware SET del_flag = '1' WHERE id IN
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+           #{id}
+        </foreach>
+    </delete>
+    <!--获取课程中包含的课件信息-->
+    <select id="getSelectedKjByKc" resultMap="TCoursewareResult">
+        SELECT  t.id,
+                t.mc,
+                t.ms,
+                t.fm,
+                t.xs,
+                t.lj,
+                t.nr,
+                t.kjdz,
+                t.kfcd,
+                t.kjwjmc,
+                t.learn_time,
+                t.del_flag,
+                t.create_by,
+                t.create_time,
+                t.update_by,
+                t.update_time,
+                t.remark,
+                t.pub_flag
+        from
+            (select sid ,sort
+             from  t_curriculum_content
+             where cid = #{kcid} and source_type='kj') tc
+             inner join t_courseware t on t.id = tc.sid
+        where t.del_flag = '0'
+        ORDER BY tc.sort
+    </select>
+
+    <!--校验是否有同名的课件-->
+    <select id="checkExistKJ"  resultMap="TCoursewareResult">
+        select
+        t.id,
+        t.mc,
+        t.ms
+        from
+            t_courseware t
+        <!-- LEFT JOIN t_courseware_company tc ON t.id = tc.kjid -->
+        <where>
+         t.mc = #{mc} and t.del_flag = '0'
+         <!-- and tc.qyid = #{qyid} -->
+        </where>
+        limit 1
+    </select>
+
+    <update id="updateTCoursewareByStudent" parameterType="map">
+        UPDATE t_courseware_student
+            SET history_study_time = #{historyStudyTime}
+        WHERE kjid = #{kjid} and xyid = #{xyid}
+    </update>
+</mapper>

@@ -1,0 +1,139 @@
+---
+# 开发测试环境
+kind: pipeline
+type: docker
+name: deplot dev
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build web<dev>
+    image: alpine:nodejs
+    volumes:
+      - name: cache
+        path: /drone/src/node_modules
+    commands:
+      - npm install
+      - npm run build:prod
+
+  - name: scp web file<dev>
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: dev_etp_host_ip
+      username:
+        from_secret: dev_etp_ssh_username
+      password:
+        from_secret: dev_etp_ssh_password
+      port: 22
+      rm: true
+      target:
+        - /home/projects/etp/etp_web_manager
+      source:
+        - dist/*
+      # strip_components: 1
+
+volumes:
+  - name: cache
+    host:
+      path: /root/cache/node_modules/etp_web_manager
+
+trigger:
+  ref:
+    include:
+      - refs/tags/DEV-*
+
+---
+kind: pipeline
+type: docker
+name: deploy test
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build web<test>
+  image: alpine:nodejs
+  volumes:
+  - name: cache
+    path: /drone/src/node_modules
+  commands:
+    - echo "v1"
+    - npm install
+    - npm run build:prod
+
+- name: scp web file<test>
+  image: appleboy/drone-scp
+  settings:
+    host:
+      from_secret: test_etp_host_ip
+    username:
+      from_secret: test_etp_ssh_username
+    password:
+      from_secret: test_etp_ssh_password
+    port: 22
+    rm: true
+    target:
+      - /home/projects/etp/etp_web_manager
+    source:
+      - dist/*
+    # strip_components: 1
+
+volumes:
+- name: cache
+  host:
+    path: /root/cache/node_modules/etp_web_manager
+
+trigger:
+  ref:
+    include:
+      - refs/tags/TEST-*
+
+---
+kind: pipeline
+type: docker
+name: deploy uat
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build web<uat>
+    image: alpine:nodejs
+    volumes:
+      - name: cache
+        path: /drone/src/node_modules
+    commands:
+      - npm install
+      - npm run build:prod
+
+  - name: scp web file<uat>
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: uat_etp_host_ip
+      username:
+        from_secret: uat_etp_ssh_username
+      password:
+        from_secret: uat_etp_ssh_password
+      port: 22
+      rm: true
+      target:
+        - /home/projects/etp/etp_web_manager
+      source:
+        - dist/*
+      # strip_components: 1
+
+volumes:
+  - name: cache
+    host:
+      path: /root/cache/node_modules/etp_web_manager
+
+trigger:
+  ref:
+    include:
+      - refs/tags/UAT-*

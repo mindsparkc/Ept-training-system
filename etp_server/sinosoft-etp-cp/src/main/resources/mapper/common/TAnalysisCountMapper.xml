@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.common.mapper.TAnalysisCountWithCpMapper">
+
+    <resultMap type="TAnalysisCountWithCp" id="TAnalysisCountResult">
+        <result property="id"    column="id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="kjid"    column="kjid"    />
+        <result property="kcid"    column="kcid"    />
+        <result property="rwid"    column="rwid"    />
+        <result property="coursewareClickCount"    column="courseware_click_count"    />
+        <result property="curriculumClickCount"    column="curriculum_click_count"    />
+        <result property="taskClickCount"    column="task_click_count"    />
+        <result property="userLoginCount"    column="user_login_count"    />
+        <result property="studyTimeCount"    column="study_time_count"    />
+        <result property="studyTimeAverage"    column="study_time_average"    />
+        <result property="videoTimeCount"    column="video_time_count"    />
+        <result property="textTimeCount"    column="text_time_count"    />
+        <result property="fileTimeCount"    column="file_time_count"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+    </resultMap>
+
+    <sql id="selectTAnalysisCountVo">
+        select id, dept_id, user_id, kjid, kcid, rwid, courseware_click_count, curriculum_click_count, task_click_count, user_login_count, study_time_count, study_time_average, video_time_count, text_time_count, file_time_count, create_time, update_time, del_flag from t_analysis_count
+    </sql>
+
+    <select id="selectTAnalysisCountList" parameterType="TAnalysisCountWithCp" resultMap="TAnalysisCountResult">
+        <include refid="selectTAnalysisCountVo"/>
+        <where>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="kjid != null "> and kjid = #{kjid}</if>
+            <if test="kcid != null "> and kcid = #{kcid}</if>
+            <if test="rwid != null "> and rwid = #{rwid}</if>
+            <if test="coursewareClickCount != null "> and courseware_click_count = #{coursewareClickCount}</if>
+            <if test="curriculumClickCount != null "> and curriculum_click_count = #{curriculumClickCount}</if>
+            <if test="taskClickCount != null "> and task_click_count = #{taskClickCount}</if>
+            <if test="userLoginCount != null "> and user_login_count = #{userLoginCount}</if>
+            <if test="studyTimeCount != null "> and study_time_count = #{studyTimeCount}</if>
+            <if test="studyTimeAverage != null "> and study_time_average = #{studyTimeAverage}</if>
+            <if test="videoTimeCount != null "> and video_time_count = #{videoTimeCount}</if>
+            <if test="textTimeCount != null "> and text_time_count = #{textTimeCount}</if>
+            <if test="fileTimeCount != null "> and file_time_count = #{fileTimeCount}</if>
+        </where>
+    </select>
+
+    <select id="selectTAnalysisCountById" parameterType="Long" resultMap="TAnalysisCountResult">
+        <include refid="selectTAnalysisCountVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTAnalysisCount" parameterType="TAnalysisCountWithCp">
+        insert into t_analysis_count
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="kjid != null">kjid,</if>
+            <if test="kcid != null">kcid,</if>
+            <if test="rwid != null">rwid,</if>
+            <if test="coursewareClickCount != null">courseware_click_count,</if>
+            <if test="curriculumClickCount != null">curriculum_click_count,</if>
+            <if test="taskClickCount != null">task_click_count,</if>
+            <if test="userLoginCount != null">user_login_count,</if>
+            <if test="studyTimeCount != null">study_time_count,</if>
+            <if test="studyTimeAverage != null">study_time_average,</if>
+            <if test="videoTimeCount != null">video_time_count,</if>
+            <if test="textTimeCount != null">text_time_count,</if>
+            <if test="fileTimeCount != null">file_time_count,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="kjid != null">#{kjid},</if>
+            <if test="kcid != null">#{kcid},</if>
+            <if test="rwid != null">#{rwid},</if>
+            <if test="coursewareClickCount != null">#{coursewareClickCount},</if>
+            <if test="curriculumClickCount != null">#{curriculumClickCount},</if>
+            <if test="taskClickCount != null">#{taskClickCount},</if>
+            <if test="userLoginCount != null">#{userLoginCount},</if>
+            <if test="studyTimeCount != null">#{studyTimeCount},</if>
+            <if test="studyTimeAverage != null">#{studyTimeAverage},</if>
+            <if test="videoTimeCount != null">#{videoTimeCount},</if>
+            <if test="textTimeCount != null">#{textTimeCount},</if>
+            <if test="fileTimeCount != null">#{fileTimeCount},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTAnalysisCount" parameterType="TAnalysisCountWithCp">
+        update t_analysis_count
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="kjid != null">kjid = #{kjid},</if>
+            <if test="kcid != null">kcid = #{kcid},</if>
+            <if test="rwid != null">rwid = #{rwid},</if>
+            <if test="coursewareClickCount != null">courseware_click_count = #{coursewareClickCount},</if>
+            <if test="curriculumClickCount != null">curriculum_click_count = #{curriculumClickCount},</if>
+            <if test="taskClickCount != null">task_click_count = #{taskClickCount},</if>
+            <if test="userLoginCount != null">user_login_count = #{userLoginCount},</if>
+            <if test="studyTimeCount != null">study_time_count = #{studyTimeCount},</if>
+            <if test="studyTimeAverage != null">study_time_average = #{studyTimeAverage},</if>
+            <if test="videoTimeCount != null">video_time_count = #{videoTimeCount},</if>
+            <if test="textTimeCount != null">text_time_count = #{textTimeCount},</if>
+            <if test="fileTimeCount != null">file_time_count = #{fileTimeCount},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTAnalysisCountById" parameterType="Long">
+        delete from t_analysis_count where id = #{id}
+    </delete>
+
+    <delete id="deleteTAnalysisCountByIds" parameterType="String">
+        delete from t_analysis_count where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

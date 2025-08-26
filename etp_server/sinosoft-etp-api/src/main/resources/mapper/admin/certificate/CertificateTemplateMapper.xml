@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.certificate.mapper.CertificateTemplateMapper">
+
+    <resultMap type="CertificateTemplate" id="CertificateTemplateResult">
+        <result property="tempId"    column="temp_id"    />
+        <result property="certName"    column="cert_name"    />
+        <result property="content"    column="content"    />
+        <result property="authority"    column="authority"    />
+        <result property="expireYear"    column="expire_year"    />
+        <result property="grantType"    column="grant_type"    />
+        <result property="grantDisplay"    column="grant_display"    />
+        <result property="tempFile"    column="temp_file"    />
+        <result property="previewFile"    column="preview_file"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="fileName"    column="file_name"    />
+    </resultMap>
+
+    <sql id="selectCertificateTemplateVo">
+        select temp_id, cert_name, content, authority, expire_year, grant_type, grant_display, temp_file, file_name,
+               preview_file, status, del_flag, create_by, create_time, update_by, update_time
+        from certificate_template
+    </sql>
+
+    <select id="selectCertificateTemplateList" parameterType="CertificateTemplate" resultMap="CertificateTemplateResult">
+        <include refid="selectCertificateTemplateVo"/>
+        <where>
+            (del_flag = '0' or del_flag is null)
+            <if test="certName != null  and certName != ''"> and cert_name like concat('%', #{certName}, '%')</if>
+            <if test="authority != null  and authority != ''"> and authority = #{authority}</if>
+            <if test="status != null  and status != ''"> and status = #{status}</if>
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        order by update_time desc
+    </select>
+
+    <select id="selectCertificateTemplateById" parameterType="Long" resultMap="CertificateTemplateResult">
+        <include refid="selectCertificateTemplateVo"/>
+        where temp_id = #{tempId}
+    </select>
+
+    <insert id="insertCertificateTemplate" parameterType="CertificateTemplate" useGeneratedKeys="true" keyProperty="tempId">
+        insert into certificate_template
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="certName != null">cert_name,</if>
+            <if test="content != null">content,</if>
+            <if test="authority != null">authority,</if>
+            <if test="expireYear != null">expire_year,</if>
+            <if test="grantType != null">grant_type,</if>
+            <if test="grantDisplay != null">grant_display,</if>
+            <if test="tempFile != null">temp_file,</if>
+            <if test="previewFile != null">preview_file,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="fileName != null">file_name,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="certName != null">#{certName},</if>
+            <if test="content != null">#{content},</if>
+            <if test="authority != null">#{authority},</if>
+            <if test="expireYear != null">#{expireYear},</if>
+            <if test="grantType != null">#{grantType},</if>
+            <if test="grantDisplay != null">#{grantDisplay},</if>
+            <if test="tempFile != null">#{tempFile},</if>
+            <if test="previewFile != null">#{previewFile},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="fileName != null">#{fileName},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateCertificateTemplate" parameterType="CertificateTemplate">
+        update certificate_template
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="certName != null">cert_name = #{certName},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="authority != null">authority = #{authority},</if>
+            <if test="expireYear != null">expire_year = #{expireYear},</if>
+            <if test="grantType != null">grant_type = #{grantType},</if>
+            <if test="grantDisplay != null">grant_display = #{grantDisplay},</if>
+            <if test="tempFile != null">temp_file = #{tempFile},</if>
+            <if test="previewFile != null">preview_file = #{previewFile},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+        </trim>
+        where temp_id = #{tempId}
+    </update>
+
+    <delete id="deleteCertificateTemplateById" parameterType="Long">
+        delete from certificate_template where temp_id = #{tempId}
+    </delete>
+
+    <!-- <delete id="deleteCertificateTemplateByIds" parameterType="String">
+         delete from certificate_template where temp_id in
+         <foreach item="tempId" collection="array" open="(" separator="," close=")">
+             #{tempId}
+         </foreach>
+     </delete>-->
+
+    <update id="deleteCertificateTemplateByIds" parameterType="String">
+        update certificate_template set del_flag ='2' where temp_id in
+        <foreach item="tempId" collection="array" open="(" separator="," close=")">
+            #{tempId}
+        </foreach>
+    </update>
+</mapper>

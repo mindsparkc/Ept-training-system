@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.exam.mapper.ExamOpenRuleMapper">
+
+    <resultMap type="ExamOpenRule" id="ExamOpenRuleResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="type"    column="type"    />
+        <result property="limitId"    column="limit_id"    />
+    </resultMap>
+
+    <sql id="selectExamOpenRuleVo">
+        select exam_id, type, limit_id from exam_open_rule
+    </sql>
+
+    <select id="selectExamOpenRuleList" parameterType="ExamOpenRule" resultMap="ExamOpenRuleResult">
+        <include refid="selectExamOpenRuleVo"/>
+        <where>
+        </where>
+    </select>
+
+    <!-- select id="selectExamOpenRuleByIds" parameterType="String" resultMap="ExamOpenRuleResult">
+        <include refid="selectExamOpenRuleVo"/>
+        where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </select -->
+
+    <select id="selectExamOpenRuleById" parameterType="Long" resultMap="ExamOpenRuleResult">
+        <include refid="selectExamOpenRuleVo"/>
+        where exam_id = #{examId}
+    </select>
+
+    <insert id="insertExamOpenRule" parameterType="ExamOpenRule">
+        insert into exam_open_rule
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examId != null">exam_id,</if>
+            <if test="type != null">type,</if>
+            <if test="limitId != null">limit_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="examId != null">#{examId},</if>
+            <if test="type != null">#{type},</if>
+            <if test="limitId != null">#{limitId},</if>
+         </trim>
+    </insert>
+
+    <insert id="batchInsertExamOpenRule" parameterType="java.util.List">
+        insert into exam_open_rule(exam_id,type,limit_id) values
+        <foreach collection="examOpenRules" item="item" index="index" separator=","  >
+            (#{item.examId}, #{item.type}, #{item.limitId})
+        </foreach>
+    </insert>
+
+    <update id="updateExamOpenRule" parameterType="ExamOpenRule">
+        update exam_open_rule
+        <trim prefix="SET" suffixOverrides=",">
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <delete id="deleteExamOpenRuleByExamId" parameterType="Long">
+        delete from exam_open_rule where exam_id = #{examId}
+    </delete>
+
+    <delete id="deleteExamOpenRuleByExamIds" parameterType="String">
+        delete from exam_open_rule where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </delete>
+</mapper>

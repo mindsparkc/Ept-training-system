@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace对应mapper接口所在的位置-->
+<mapper namespace="com.sinosoft.mapper.CoursewareMapper">
+
+    <select id="list" resultType="Courseware">
+        select * from t_courseware where (step = '0' or step is null) AND del_flag = '0' order by id
+    </select>
+
+    <update id="update" parameterType="Courseware">
+        update t_courseware
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="step != null">step = #{step},</if>
+            <if test="metaData != null">meta_data = #{metaData},</if>
+            <if test="stepMark != null">step_mark = #{stepMark},</if>
+        </trim>
+         where id=#{id}
+    </update>
+
+</mapper>

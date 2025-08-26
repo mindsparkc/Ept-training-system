@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.courseware.mapper.TCoursewareMapper">
+
+    <resultMap type="TCourseware" id="TCoursewareResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fm" column="fm"/>
+        <result property="xs" column="xs"/>
+        <result property="lj" column="lj"/>
+        <result property="nr" column="nr"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="learnTime" column="learn_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="metaData" column="meta_data"/>
+        <result property="suffix" column="suffix"/>
+        <result property="lastStudyTime" column="lastStudyTime"/>
+    </resultMap>
+
+    <sql id="selectTCoursewareVo">
+        SELECT  t.id,
+               t.mc,
+               t.ms,
+               t.fm,
+               t.xs,
+               t.lj,
+               t.nr,
+               t.kjdz,
+               t.kfcd,
+               t.kjwjmc,
+               t.learn_time,
+               t.del_flag,
+               t.create_by,
+               t.create_time,
+               t.update_by,
+               t.update_time,
+               t.meta_data,
+               t.suffix,
+               t.remark
+        FROM t_courseware t
+--         JOIN t_courseware_company tc ON t.id = tc.kjid
+--         JOIN sys_dept d ON d.dept_id = tc.qyid
+--         LEFT JOIN t_courseware_tag st ON t.id = st.kjid
+--         LEFT JOIN t_tag tt ON st.bqid = tt.id
+
+    </sql>
+
+    <select id="selectTCoursewareList" parameterType="TCourseware" resultMap="TCoursewareResult">
+        <include refid="selectTCoursewareVo"/>
+        <where>
+            <if test="mc != null  and mc != ''">AND t.mc like concat('%', #{mc}, '%')</if>
+            <if test="ms != null  and ms != ''">AND t.ms like concat('%', #{ms}, '%')</if>
+            <if test="fm != null  and fm != ''">AND t.fm = #{fm}</if>
+            <if test="xs != null  and xs != ''">AND t.xs = #{xs}</if>
+            <if test="lj != null  and lj != ''">AND t.lj = #{lj}</if>
+            <if test="nr != null  and nr != ''">AND t.nr = #{nr}</if>
+            <if test="kfcd != null  and kfcd != ''">AND t.kfcd = #{kfcd}</if>
+            AND t.del_flag = '0' AND (st.del_flag = '0' OR  st.del_flag IS NULL)
+            <if test="params.dataScope != null  and params.dataScope != ''">${params.dataScope}</if>
+        </where>
+        GROUP BY t.id
+        ORDER BY t.update_time DESC
+    </select>
+
+    <select id="selectTCoursewareById" parameterType="Long" resultMap="TCoursewareResult">
+        SELECT  t.id,
+                t.mc,
+                t.ms,
+                t.fm,
+                t.xs,
+                t.lj,
+                t.nr,
+                t.kjdz,
+                t.kfcd,
+                t.kjwjmc,
+                t.learn_time,
+                t.del_flag,
+                t.create_by,
+                t.create_time,
+                t.update_by,
+                t.update_time,
+                t.meta_data,
+                t.suffix,
+                t.remark,
+                ts.history_study_time as lastStudyTime
+        FROM t_courseware t
+        left join t_courseware_student ts on t.id = ts.kjid and ts.xyid=#{xyid}
+        WHERE t.id = #{id}
+    </select>
+
+
+    <select id="getStudyDuration" resultType="Map">
+        select t.id,
+               t.learn_time as "learnTime",
+               IFNULL(s.history_study_time,0) as "historyStudyTime",
+               IFNULL(s.jd->'$.rate',0) as 'jd'
+        FROM t_courseware t
+        inner join t_courseware_student s on t.id = s.kjid
+        where t.id=#{id} and s.xyid = #{xyid} and t.del_flag = '0'
+    </select>
+
+    <update id="updateRate">
+        update t_courseware_student set jd=JSON_SET(jd, '$.rate', 100)
+        where kjid=#{kjid} and xyid = #{xyid}
+    </update>
+</mapper>

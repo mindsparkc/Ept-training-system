@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.subject.mapper.TSubjectWithCpMapper">
+
+    <resultMap type="TSubjectWithCp" id="TSubjectResult">
+        <result property="id"    column="id"    />
+        <result property="tg"    column="tg"    />
+        <result property="tgDisplat"    column="tg_displat"    />
+        <result property="lx"    column="lx"    />
+        <result property="xx"    column="xx"    />
+        <result property="da"    column="da"    />
+        <result property="jx"    column="jx"    />
+        <result property="sflx"    column="sflx"    />
+        <result property="sfks"    column="sfks"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+        <result property="categoryId" column="categoryId"/>
+        <result property="categoryName" column="categoryName"/>
+        <result property="level" column="level"/>
+    </resultMap>
+
+    <sql id="selectTSubjectVo">
+        select s.id, s.tg, s.tg_displat, s.lx, s.xx, s.da, s.jx, s.sflx, s.sfks, s.del_flag, s.create_by, s.create_time,
+               s.update_by, s.update_time, s.remark,s.level,
+                s.categoryId,
+                tg.name as categoryName,
+               GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_subject s
+        <!-- left join  t_subject_company c on s.id = c.tkid -->
+        <!-- 数据过滤 -->
+        <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+        left join t_subject_tag st on s.id = st.tkid
+        left join t_tag tt on st.bqid = tt.id
+        left join t_category tg on tg.id = s.categoryId
+</sql>
+
+    <select id="selectTSubjectList" parameterType="TSubjectWithCp" resultMap="TSubjectResult">
+        <include refid="selectTSubjectVo"/>
+        <where>
+            <if test="tg != null  and tg != ''"> and s.tg like concat('%', #{tg}, '%')</if>
+            <if test="tgDisplat != null  and tgDisplat != ''"> and s.tg_displat like concat('%', #{tgDisplat}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                AND s.id IN (
+                SELECT
+                st.tkid
+                FROM
+                t_subject_tag st
+                WHERE
+                st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.tkid
+               <!-- HAVING
+                count( st.tkid ) = #{params.tagsCount}-->
+                )
+             </if>
+            <if test="lx != null  and lx != ''"> and s.lx = #{lx}</if>
+            <if test="sflx != null  and sflx != ''"> and s.sflx = #{sflx}</if>
+            <if test="sfks != null  and sfks != ''"> and s.sfks = #{sfks}</if>
+            <if test="params.ids != null  and params.ids != ''">
+                and s.id in
+                <foreach item="id" collection="params.ids.split(',')" open="(" separator="," close=")">
+                   #{id}
+                </foreach>
+
+            </if>
+            <if test="beginTime != null and beginTime != ''"><!-- 开始时间检索 -->
+                AND date_format(s.update_time,'%y%m%d') &gt;= date_format(#{beginTime},'%y%m%d')
+            </if>
+            <if test="endTime != null and endTime != ''"><!-- 结束时间检索 -->
+                AND date_format(s.update_time,'%y%m%d') &lt;= date_format(#{endTime},'%y%m%d')
+            </if>
+            and s.del_flag ="0"
+            <if test="categoryId != null and categoryId != 1">
+                AND (s.categoryId = #{categoryId} OR
+                s.categoryId IN ( SELECT cy.id FROM t_category cy WHERE find_in_set(#{categoryId}, ancestors) ))
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+
+        </where>
+        GROUP BY s.id
+        order by s.update_time desc ,s.id desc
+    </select>
+
+    <select id="selectTSubjectById" parameterType="Long" resultMap="TSubjectResult">
+        <include refid="selectTSubjectVo"/>
+        where s.id = #{id}
+    </select>
+
+    <insert id="insertTSubject" parameterType="TSubjectWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_subject
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tg != null">tg,</if>
+            <if test="tgDisplat != null">tg_displat,</if>
+            <if test="lx != null">lx,</if>
+            <if test="xx != null">xx,</if>
+            <if test="da != null">da,</if>
+            <if test="jx != null">jx,</if>
+            <if test="sflx != null">sflx,</if>
+            <if test="sfks != null">sfks,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="categoryId != null">categoryId,</if>
+            <if test="level != null">level,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tg != null">#{tg},</if>
+            <if test="tgDisplat != null">#{tgDisplat},</if>
+            <if test="lx != null">#{lx},</if>
+            <if test="xx != null">#{xx},</if>
+            <if test="da != null">#{da},</if>
+            <if test="jx != null">#{jx},</if>
+            <if test="sflx != null">#{sflx},</if>
+            <if test="sfks != null">#{sfks},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="level != null">#{level},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTSubject" parameterType="TSubjectWithCp">
+        update t_subject
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tg != null">tg = #{tg},</if>
+            <if test="tgDisplat != null">tg_displat = #{tgDisplat},</if>
+            <if test="lx != null">lx = #{lx},</if>
+            <if test="xx != null">xx = #{xx},</if>
+            <if test="da != null">da = #{da},</if>
+            <if test="jx != null">jx = #{jx},</if>
+            <if test="sflx != null">sflx = #{sflx},</if>
+            <if test="sfks != null">sfks = #{sfks},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="categoryId != null">categoryId = #{categoryId},</if>
+            <if test="level != null">level = #{level},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteTSubjectById"  parameterType="Long">
+        update  t_subject set del_flag = "1" where id = #{id}
+    </update>
+    <!--<delete id="deleteTSubjectById" parameterType="Long">
+        delete from t_subject where id = #{id}
+    </delete>-->
+    <update id="deleteTSubjectByIds" parameterType="String">
+        update  t_subject  set del_flag = "1" where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+<!--    <delete id="deleteTSubjectByIds" parameterType="String">-->
+<!--        delete from t_subject where id in-->
+<!--        <foreach item="id" collection="array" open="(" separator="," close=")">-->
+<!--            #{id}-->
+<!--        </foreach>-->
+<!--    </delete>-->
+
+    <select id="getSubjectRand"  resultMap="TSubjectResult">
+        SELECT
+            s.id,
+            s.tg,
+            s.tg_displat,
+            s.lx,
+            s.xx,
+            s.da,
+            s.jx,
+            s.sflx,
+            s.sfks,
+            s.level
+        FROM
+            t_subject s
+        WHERE s.id in
+        <foreach item="id" collection="ids.split(',')" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        ORDER BY
+            RAND()
+            LIMIT ${num}
+
+    </select>
+
+    <!--获取课程中包含的习题信息-->
+    <select id="getSelectedStByKc" resultMap="TSubjectResult">
+        select s.id, s.tg, s.tg_displat, s.lx, s.xx, s.da, s.jx, s.sflx, s.sfks, s.del_flag, s.create_by, s.create_time,s.level,
+        s.update_by, s.update_time
+        from
+            (select sid ,sort
+             from  t_curriculum_content
+             where cid = #{kcid} and source_type='st') tc
+        inner join t_subject s on s.id = tc.sid
+        ORDER BY tc.sort
+    </select>
+</mapper>

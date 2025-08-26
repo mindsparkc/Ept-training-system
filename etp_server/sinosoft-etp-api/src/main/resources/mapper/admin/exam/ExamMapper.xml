@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.exam.mapper.ExamMapper">
+
+    <resultMap type="Exam" id="ExamResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="name"    column="name"    />
+        <result property="content"    column="content"    />
+        <result property="cover"    column="cover"    />
+        <result property="openType"    column="open_type"    />
+        <result property="password"    column="password"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="status"    column="status"    />
+        <result property="totalTime"    column="total_time"    />
+        <result property="handMinTime"    column="hand_min_time"    />
+        <result property="chance"    column="chance"    />
+        <result property="qualifyScore"    column="qualify_score"    />
+        <result property="timeLimit"    column="time_limit"    />
+        <result property="publishTime"    column="publish_time"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="lateTime"    column="late_time"    />
+        <result property="leaveLimit"    column="leave_limit"    />
+        <result property="noActLimit"    column="no_act_limit"    />
+        <result property="showScore"    column="show_score"    />
+        <result property="showScoreTime"    column="show_score_time"    />
+        <result property="showExam"    column="show_exam"    />
+        <result property="showComment"    column="show_comment"    />
+        <result property="answerDriver"    column="answer_driver"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectExamVo">
+        select exam_id, name, content, cover, open_type, password, paper_id, status, total_time, hand_min_time, chance, qualify_score, time_limit, publish_time, start_time, end_time, late_time, leave_limit, no_act_limit, show_score, show_score_time, show_exam, show_comment, answer_driver, user_id, dept_id, del_flag, create_by, create_time, update_by, update_time, remark from exam ex
+    </sql>
+
+    <select id="selectExamList" parameterType="ExamQuery" resultMap="ExamResult">
+        <include refid="selectExamVo"/>
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="content != null  and content != ''"> and content like concat('%', #{content}, '%')</if>
+            <if test="openType != null  and openType != ''"> and open_type = #{openType}</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+            <!-- 如果有分类，判断是否位于分类内 -->
+            <if test="categoryId != null  and categoryId != '' and categoryId != '0' and categoryId != '-1'"> and ex.exam_id in (
+                select qic.obj_id from exam_inter_category qic, exam_category qc
+                where qic.cat_id = qc.cat_id and (qic.cat_id = #{categoryId} or find_in_set(#{categoryId}, qc.ancestors))
+                )
+            </if>
+
+            <!-- 未分类 -->
+            <if test="categoryId == '-1'">
+                and not exists(select 1 from exam_inter_category qic where ex.exam_id = qic.obj_id)
+            </if>
+            and (del_flag="0" or del_flag is null)
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        order by update_time desc
+    </select>
+
+    <select id="selectExamByIds" parameterType="String" resultMap="ExamResult">
+        <include refid="selectExamVo"/>
+        where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+        and (del_flag="0" or del_flag is null)
+    </select>
+
+    <select id="selectExamById" parameterType="Long" resultMap="ExamResult">
+        <include refid="selectExamVo"/>
+        where exam_id = #{examId} and (del_flag="0" or del_flag is null)
+        order by update_time desc
+    </select>
+    <select id="checkName" resultType="java.lang.Integer">
+        select count(1) from exam where name = #{name}
+        <if test="examId != null  and examId != '' and examId !=0" >and exam_id=#{examId} </if> and del_flag = 0
+    </select>
+
+    <insert id="insertExam" parameterType="Exam" useGeneratedKeys="true" keyProperty="examId">
+        insert into exam
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="examId != null">exam_id,</if>
+            <if test="name != null">name,</if>
+            <if test="content != null">content,</if>
+            <if test="cover != null">cover,</if>
+            <if test="openType != null">open_type,</if>
+            <if test="password != null">password,</if>
+            <if test="paperId != null">paper_id,</if>
+            <if test="status != null">status,</if>
+            <if test="totalTime != null">total_time,</if>
+            <if test="handMinTime != null">hand_min_time,</if>
+            <if test="chance != null">chance,</if>
+            <if test="qualifyScore != null">qualify_score,</if>
+            <if test="timeLimit != null">time_limit,</if>
+            <if test="publishTime != null">publish_time,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="lateTime != null">late_time,</if>
+            <if test="leaveLimit != null">leave_limit,</if>
+            <if test="noActLimit != null">no_act_limit,</if>
+            <if test="showScore != null">show_score,</if>
+            <if test="showScoreTime != null">show_score_time,</if>
+            <if test="showExam != null">show_exam,</if>
+            <if test="showComment != null">show_comment,</if>
+            <if test="answerDriver != null">answer_driver,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="examId != null">#{examId},</if>
+            <if test="name != null">#{name},</if>
+            <if test="content != null">#{content},</if>
+            <if test="cover != null">#{cover},</if>
+            <if test="openType != null">#{openType},</if>
+            <if test="password != null">#{password},</if>
+            <if test="paperId != null">#{paperId},</if>
+            <if test="status != null">#{status},</if>
+            <if test="totalTime != null">#{totalTime},</if>
+            <if test="handMinTime != null">#{handMinTime},</if>
+            <if test="chance != null">#{chance},</if>
+            <if test="qualifyScore != null">#{qualifyScore},</if>
+            <if test="timeLimit != null">#{timeLimit},</if>
+            <if test="publishTime != null">#{publishTime},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="lateTime != null">#{lateTime},</if>
+            <if test="leaveLimit != null">#{leaveLimit},</if>
+            <if test="noActLimit != null">#{noActLimit},</if>
+            <if test="showScore != null">#{showScore},</if>
+            <if test="showScoreTime != null">#{showScoreTime},</if>
+            <if test="showExam != null">#{showExam},</if>
+            <if test="showComment != null">#{showComment},</if>
+            <if test="answerDriver != null">#{answerDriver},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateExamStatus" parameterType="Exam">
+        update exam
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = #{status},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <update id="updateExam" parameterType="Exam">
+        update exam
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="openType != null">open_type = #{openType},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="paperId != null">paper_id = #{paperId},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="totalTime != null">total_time = #{totalTime},</if>
+            <if test="handMinTime != null">hand_min_time = #{handMinTime},</if>
+            <if test="chance != null">chance = #{chance},</if>
+            <if test="qualifyScore != null">qualify_score = #{qualifyScore},</if>
+            <if test="timeLimit != null">time_limit = #{timeLimit},</if>
+            <if test="publishTime != null">publish_time = #{publishTime},</if>
+            start_time = #{startTime},
+            end_time = #{endTime},
+            <if test="lateTime != null">late_time = #{lateTime},</if>
+            <if test="leaveLimit != null">leave_limit = #{leaveLimit},</if>
+            <if test="noActLimit != null">no_act_limit = #{noActLimit},</if>
+            <if test="showScore != null">show_score = #{showScore},</if>
+            <if test="showExam != null">show_exam = #{showExam},</if>
+            <if test="showComment != null">show_comment = #{showComment},</if>
+            <if test="answerDriver != null">answer_driver = #{answerDriver},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+        </trim>
+        where exam_id = #{examId}
+    </update>
+
+    <delete id="deleteExamById" parameterType="Long">
+        delete from exam where exam_id = #{examId}
+    </delete>
+
+    <delete id="deleteExamByIds" parameterType="String">
+        delete from exam where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </delete>
+
+    <update id="logicalDeleteExamById" parameterType="Long">
+        update exam set del_flag="2" where exam_id = #{examId}
+    </update>
+
+    <update id="logicalDeleteExamByIds" parameterType="String">
+        update exam set del_flag="2" where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </update>
+
+    <select id="selectExamByPaperIds" parameterType="String" resultMap="ExamResult">
+        <include refid="selectExamVo"/>
+        where (del_flag != '2' or del_flag is null) and paper_id in
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+    </select>
+
+    <select id="selectExamByPaperId" parameterType="String" resultMap="ExamResult">
+        <include refid="selectExamVo"/>
+        where (del_flag != '2' or del_flag is null) and paper_id = #{paperId}
+    </select>
+</mapper>

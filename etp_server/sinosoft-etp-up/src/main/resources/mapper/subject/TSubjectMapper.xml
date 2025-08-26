@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.subject.mapper.TSubjectMapper">
+
+    <resultMap type="TSubject" id="TSubjectResult">
+        <result property="id"    column="id"    />
+        <result property="tg"    column="tg"    />
+        <result property="tgDisplat"    column="tg_displat"    />
+        <result property="lx"    column="lx"    />
+        <result property="xx"    column="xx"    />
+        <result property="da"    column="da"    />
+        <result property="jx"    column="jx"    />
+        <result property="sflx"    column="sflx"    />
+        <result property="sfks"    column="sfks"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+        <result property="lxbq"    column="lxbq"    />
+    </resultMap>
+
+    <sql id="selectTSubjectVo">
+        select s.id, s.tg, s.tg_displat, s.lx, s.xx, s.da, s.jx, s.sflx, s.sfks, s.del_flag, s.create_by, s.create_time,
+               s.update_by, s.update_time, s.remark,GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_subject s
+        <!-- left join  t_subject_company c on s.id = c.tkid -->
+        <!-- 数据过滤 -->
+        <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+        left join t_subject_tag st on s.id = st.tkid
+        left join t_tag tt on st.bqid = tt.id
+</sql>
+
+    <select id="selectTSubjectList" parameterType="TSubject" resultMap="TSubjectResult">
+        <include refid="selectTSubjectVo"/>
+        <where>
+            <if test="tg != null  and tg != ''"> and s.tg like concat('%', #{tg}, '%')</if>
+            and s.del_flag ="0"
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+
+        </where>
+        GROUP BY s.id
+        order by s.update_time desc
+    </select>
+
+    <select id="selectTSubjectById" parameterType="Long" resultMap="TSubjectResult">
+
+        select
+           s.id,
+           s.tg,
+           s.tg_displat,
+           case when s.lx='1' then '单选'
+           when s.lx='2' then '复选'
+           when s.lx='3' then '判断'
+           when s.lx='4' then '填空'
+           else'主观' end lxbq,
+           s.lx,
+           s.xx,
+           s.da,
+           s.jx,
+           s.sflx,
+           s.sfks
+        from t_subject s
+        where s.id = #{id}
+
+    </select>
+
+</mapper>

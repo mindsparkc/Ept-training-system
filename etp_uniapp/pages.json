@@ -1,0 +1,441 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+
+
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页",
+				"enablePullDownRefresh": true
+				// "navigationStyle": "custom" ,// 隐藏系统导航栏
+				// "navigationBarTextStyle": "black" // 状态栏字体为白色，只能为 white-白色，black-黑色 二选一
+			}
+		}, {
+			"path": "pages/userCenter/userCenter",
+			"style": {
+				"navigationBarTitleText": "我的",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom",
+				"navigationBarTextStyle": "white"
+			}
+
+		}, {
+			"path": "pages/sort/sort",
+			"style": {
+				"navigationBarTitleText": "发现",
+				"enablePullDownRefresh": false
+			}
+
+		},
+		{
+			"path": "pages/taskList/taskList",
+			"style": {
+				"navigationBarTitleText": "我的任务",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/lessonList/lessonList",
+			"style": {
+				"navigationBarTitleText": "我的课程",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/exam/exam",
+			"style": {
+				"navigationBarTitleText": "考试",
+				"enablePullDownRefresh": false
+			}
+
+		}, 
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "登录",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+
+		}, {
+			"path": "pages/exam/examIndex/examIndex",
+			"style": {
+				"navigationBarTitleText": "开始考试",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/lesson/lesson",
+			"style": {
+				"navigationBarTitleText": "课程学习",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/common/feedback/feedback",
+			"style": {
+				"navigationBarTitleText": "我要反馈",
+				"enablePullDownRefresh": false
+			}
+
+		},
+		{
+			"path": "pages/common/webview/webview",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		},
+		{
+			"path": "pages/questionnaire/questionnaire",
+			"style": {
+				"navigationBarTitleText": "调查问卷",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/questionnaire/questionBegin",
+			"style": {
+				"navigationBarTitleText": "调查问卷",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/exam/examGrade/examGrade",
+			"style": {
+				"navigationBarTitleText": "考试成绩",
+				"navigationStyle": "custom",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/enter/enter",
+			"style": {
+				"navigationBarTitleText": "活动报名",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/accountManager/accountManager",
+			"style": {
+				"navigationBarTitleText": "账号管理",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/enterList/enterList",
+			"style": {
+				"navigationBarTitleText": "活动报名",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/changePassword/changePassword",
+			"style": {
+				"navigationBarTitleText": "修改密码",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/taskIndex/taskIndex",
+			"style": {
+				"navigationBarTitleText": "任务详情",
+				"enablePullDownRefresh": false,
+				"backgroundColor": "#F0AD4E"
+			}
+
+		}, {
+			"path": "pages/errorBook/errorBook",
+			"style": {
+				"navigationBarTitleText": "错题集",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/aboutUs/aboutUs",
+			"style": {
+				"navigationBarTitleText": "关于我们",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/noticeList/noticeList",
+			"style": {
+				"navigationBarTitleText": "通知公告",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/notice/notice",
+			"style": {
+				"navigationBarTitleText": "通知公告",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/exam/examine/examine",
+			"style": {
+				"navigationBarTitleText": "考试",
+				"enablePullDownRefresh": false
+			}
+
+		}, 
+		{
+			"path": "pages/common/feedbackList/feedbackList",
+			"style": {
+				"navigationBarTitleText": "我的反馈",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/exam/catExam/catExam",
+			"style": {
+				"navigationBarTitleText": "查看试卷",
+				"enablePullDownRefresh": false
+			}
+
+		},
+		{
+			"path": "pages/accountManager/cropImage",
+			"style": {
+				"navigationStyle": "custom"
+			}
+		}, {
+			"path": "pages/download/download",
+			"style": {
+				"navigationBarTitleText": "Teach",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+
+		}, {
+			"path": "pages/common/feedbackIndex/feedbackIndex",
+			"style": {
+				"navigationBarTitleText": "意见反馈",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/common/helpDetail/helpDetail",
+			"style": {
+				"navigationBarTitleText": "帮助",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/common/feedbackDetail/feedbackDetail",
+			"style": {
+				"navigationBarTitleText": "反馈详情",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/common/showImage/showImage",
+			"style": {
+				"navigationBarTitleText": "图片预览",
+				"enablePullDownRefresh": false,
+				"navigationBarTextStyle": "white",
+				"navigationBarBackgroundColor": "#000000",
+				"app-plus": {
+					"animationType": "fade-in",
+					"animationDuration": 300
+				}
+			}
+
+		}, {
+			"path": "pages/examHistoryList/examHistoryList",
+			"style": {
+				"navigationBarTitleText": "历史考试",
+				"enablePullDownRefresh": false
+			}
+
+		},
+		{
+			"path": "pages/lessonIndexInfo/lessonIndexInfo",
+			"style": {
+				"navigationBarTitleText": "课程详情",
+				"enablePullDownRefresh": false,
+				"navigationStyle": "custom"
+			}
+
+		}
+
+		, {
+			"path": "pages/lessonDetail/lessonDetail",
+			"style": {
+				"navigationBarTitleText": "课程详情",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/exercisesList/exercisesList",
+			"style": {
+				"navigationBarTitleText": "习题",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/empty/empty",
+			"style": {
+				"navigationBarTitleText": "",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/article/article",
+			"style": {
+				"navigationBarTitleText": "文章",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/lessonExercises/lessonExercises",
+			"style": {
+				"navigationBarTitleText": "课后习题",
+				"enablePullDownRefresh": false
+			}
+
+		}, {
+			"path": "pages/certList/certList",
+			"style": {
+				"navigationBarTitleText": "我的证书",
+				"enablePullDownRefresh": true,
+				"backgroundColor": "#f8f8f8"
+			}
+
+		}, {
+			"path": "pages/certList/certInfo/certInfo",
+			"style": {
+				"navigationBarTitleText": "我的证书",
+				"enablePullDownRefresh": false,
+				"backgroundColor": "#f8f8f8"
+			}
+
+		}
+	    ,{
+            "path" : "pages/taskInfo/taskInfo",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/testQuestion/testQuestion",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "测试试题组件",
+                "enablePullDownRefresh": false
+				
+            }
+            
+        }
+        ,{
+            "path" : "pages/lessonListIndex/lessonListIndex",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "课程",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/empty/error/error",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "错误提示",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/empty/examSubmitSucess/examSubmitSucess",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "交卷成功",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        
+        ,{
+            "path" : "pages/common/privacyPolicy/privacyPolicy",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "用户服务协议与隐私政策",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        
+        ,{
+            "path" : "pages/test/test",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false
+            }
+            
+        },
+		{
+		    "path" : "pages/share/share",
+		    "style" :                                                                                    
+		    {
+		        "navigationBarTitleText": "文库推广",
+		        "enablePullDownRefresh": false
+		    }
+		    
+		},
+		{
+			"path": "pages/deepAsk/deepAsk",
+			"style": {
+				"navigationBarTitleText": "智慧问答",
+				"enablePullDownRefresh": false
+			}
+		
+		}
+    ],
+
+
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "专家培训平台",
+		"navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#F8F8F8",
+		"pageOrientation": "portrait",
+		"app-plus": {
+			//#ifdef H5
+			// "navigationStyle": "custom",
+			"titleNView": false ,// 去掉H5的顶部导航
+			//#endif
+			"bounce": "none"
+		}
+	},
+	"tabBar": {
+		"color": "#303133",
+		"selectedColor": "#007DFF",
+		"borderStyle": "black",
+		"backgroundColor": "#FFFFFF",
+		"spacing": "5px",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/tabbar/icon-home-normal.png",
+				"selectedIconPath": "static/tabbar/icon-home-select.png",
+				"text": "首页"
+			}, {
+				"pagePath": "pages/sort/sort",
+				"iconPath": "static/tabbar/icon-classify-normal.png",
+				"selectedIconPath": "static/tabbar/icon-classify-select.png",
+				"text": "发现"
+			},
+			{
+				"pagePath": "pages/userCenter/userCenter",
+				"iconPath": "static/tabbar/icon-user-normal.png",
+				"selectedIconPath": "static/tabbar/icon-user-select.png",
+				"text": "我的"
+			}
+		]
+	}
+}

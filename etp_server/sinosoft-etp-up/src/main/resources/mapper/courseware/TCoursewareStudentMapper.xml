@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.courseware.mapper.TCoursewareStudentMapper">
+
+    <resultMap type="TCoursewareStudent" id="TCoursewareStudentResult">
+        <result property="id"    column="id"    />
+        <result property="kjid"    column="kjid"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="jd"    column="jd"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTCoursewareStudentVo">
+        select id, kjid, xyid, jd, del_flag, create_by, create_time, update_by, update_time, remark from t_courseware_student
+    </sql>
+
+    <select id="selectTCoursewareStudentList" parameterType="TCoursewareStudent" resultMap="TCoursewareStudentResult">
+        <include refid="selectTCoursewareStudentVo"/>
+        <where>
+            <if test="kjid != null "> and kjid = #{kjid}</if>
+            <if test="xyid != null "> and xyid = #{xyid}</if>
+            <if test="jd != null  and jd != ''"> and jd = #{jd}</if>
+        </where>
+    </select>
+
+    <select id="selectTCoursewareStudentById" parameterType="Long" resultMap="TCoursewareStudentResult">
+        <include refid="selectTCoursewareStudentVo"/>
+        where kjid = #{kjid} and xyid=#{xyid}
+    </select>
+
+    <insert id="insertTCoursewareStudent" parameterType="TCoursewareStudent" useGeneratedKeys="true" keyProperty="id">
+        insert into t_courseware_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="kjid != null">kjid,</if>
+            <if test="xyid != null">xyid,</if>
+            <if test="jd != null">jd,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="kjid != null">#{kjid},</if>
+            <if test="xyid != null">#{xyid},</if>
+            <if test="jd != null">#{jd},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCoursewareStudent" parameterType="TCoursewareStudent">
+        update t_courseware_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="kjid != null">kjid = #{kjid},</if>
+            <if test="xyid != null">xyid = #{xyid},</if>
+            <if test="jd != null">jd = #{jd},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTCoursewareStudentById" parameterType="Long">
+        delete from t_courseware_student where id = #{id}
+    </delete>
+
+    <delete id="deleteTCoursewareStudentByIds" parameterType="String">
+        delete from t_courseware_student where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+</mapper>

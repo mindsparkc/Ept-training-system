@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.certificate.mapper.TCertificateCompanyWithCpMapper">
+    
+    <resultMap type="TCertificateCompanyWithCp" id="TCertificateCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="zsid"    column="zsid"    />
+        <result property="qyid"    column="qyid"    />
+    </resultMap>
+
+    <sql id="selectTCertificateCompanyVo">
+        select id, zsid, qyid from t_certificate_company
+    </sql>
+
+    <select id="selectTCertificateCompanyList" parameterType="TCertificateCompanyWithCp" resultMap="TCertificateCompanyResult">
+        <include refid="selectTCertificateCompanyVo"/>
+        <where>  
+            <if test="zsid != null "> and zsid = #{zsid}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+    
+    <select id="selectTCertificateCompanyById" parameterType="Long" resultMap="TCertificateCompanyResult">
+        <include refid="selectTCertificateCompanyVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTCertificateCompany" parameterType="TCertificateCompanyWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_certificate_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="zsid != null">zsid,</if>
+            <if test="qyid != null">qyid,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="zsid != null">#{zsid},</if>
+            <if test="qyid != null">#{qyid},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCertificateCompany" parameterType="TCertificateCompanyWithCp">
+        update t_certificate_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="zsid != null">zsid = #{zsid},</if>
+            <if test="qyid != null">qyid = #{qyid},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTCertificateCompanyById" parameterType="Long">
+        delete from t_certificate_company where zsid = #{zsid}
+    </delete>
+
+    <delete id="deleteTCertificateCompanyByIds" parameterType="String">
+        delete from t_certificate_company where zsid in
+        <foreach item="zsid" collection="array" open="(" separator="," close=")">
+            #{zsid}
+        </foreach>
+    </delete>
+</mapper>

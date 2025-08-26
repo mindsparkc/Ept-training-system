@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.banner.mapper.TBannerWithCpMapper">
+
+    <resultMap type="TBannerWithCp" id="TBannerResult">
+        <result property="id"    column="id"    />
+        <result property="imageurl"    column="imageUrl"    />
+        <result property="openurl"    column="openUrl"    />
+        <result property="title"    column="title"    />
+        <result property="sort"    column="sort"    />
+        <result property="source"    column="source"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTBannerVo">
+        select t.id, t.imageUrl, t.openUrl, t.title, t.sort, t.source, t.status, t.del_flag, t.create_by, t.create_time, t.update_by, t.update_time, t.remark
+        from t_banner t
+        <!-- JOIN t_banner_company tc ON t.id = tc.bid
+        LEFT JOIN sys_dept d ON d.dept_id = tc.qyid -->
+
+    </sql>
+
+    <select id="selectTBannerList" parameterType="TBannerWithCp" resultMap="TBannerResult">
+        <include refid="selectTBannerVo"/>
+        <where>
+            <if test="imageurl != null  and imageurl != ''"> and t.imageUrl = #{imageurl}</if>
+            <if test="openurl != null  and openurl != ''"> and t.openUrl = #{openurl}</if>
+            <if test="title != null  and title != ''"> and t.title = #{title}</if>
+            <if test="sort != null  and sort != ''"> and t.sort = #{sort}</if>
+            <if test="source != null  and source != ''"> and t.source = #{source}</if>
+            <if test="status != null  and status != ''"> and t.status = #{status}</if>
+            <if test="params.dataScope != null  and params.dataScope != ''">
+                ${params.dataScope}
+            </if>
+            AND t.del_flag = '0'
+        </where>
+        ORDER BY t.update_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectTBannerById" parameterType="Long" resultMap="TBannerResult">
+        <include refid="selectTBannerVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTBanner" parameterType="TBanner" useGeneratedKeys="true" keyProperty="id">
+        insert into t_banner
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="imageurl != null">imageUrl,</if>
+            <if test="openurl != null">openUrl,</if>
+            <if test="title != null">title,</if>
+            <if test="sort != null">sort,</if>
+            <if test="source != null">source,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="imageurl != null">#{imageurl},</if>
+            <if test="openurl != null">#{openurl},</if>
+            <if test="title != null">#{title},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="source != null">#{source},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+        </trim>
+    </insert>
+
+</mapper>

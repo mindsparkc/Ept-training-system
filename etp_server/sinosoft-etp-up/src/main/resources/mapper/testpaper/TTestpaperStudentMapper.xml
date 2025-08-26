@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.testpaper.mapper.TTestpaperStudentMapper">
+
+    <resultMap type="TTestpaperStudent" id="TTestpaperStudentResult">
+        <result property="id"    column="id"    />
+        <result property="ksid"    column="ksid"    />
+        <result property="sjid"    column="sjid"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="jd"    column="jd"    />
+        <result property="snapshot"    column="snapshot"    />
+        <result property="snapCreateTime"    column="snap_create_time"    />
+        <result property="da"    column="da"    />
+        <result property="score"    column="score"    />
+        <result property="rate"    column="rate"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="ksmc"    column="ksmc"    />
+        <result property="ksjssj"    column="ksjssj"    />
+        <result property="djsc"    column="djsc"    />
+        <result property="fm"    column="fm"    />
+        <result property="fsdj"    column="fsdj"    />
+        <result property="handTime" column="hand_time" />
+    </resultMap>
+
+    <sql id="selectTTestpaperStudentVo">
+        select id, ksid, sjid, xyid, jd, snapshot, snap_create_time, da, score, rate, del_flag, create_by, create_time, update_by, update_time, remark from t_testpaper_student
+    </sql>
+
+    <select id="selectTTestpaperStudentList" parameterType="TTestpaperStudent" resultMap="TTestpaperStudentResult">
+        <include refid="selectTTestpaperStudentVo"/>
+        <where>
+            <if test="ksid != null "> and ksid = #{ksid}</if>
+            <if test="sjid != null "> and sjid = #{sjid}</if>
+            <if test="xyid != null "> and xyid = #{xyid}</if>
+            <if test="jd != null  and jd != ''"> and jd = #{jd}</if>
+            <if test="snapshot != null  and snapshot != ''"> and snapshot = #{snapshot}</if>
+            <if test="snapCreateTime != null "> and snap_create_time = #{snapCreateTime}</if>
+            <if test="da != null  and da != ''"> and da = #{da}</if>
+            <if test="score != null "> and score = #{score}</if>
+            <if test="rate != null "> and rate = #{rate}</if>
+        </where>
+    </select>
+
+    <select id="selectTTestpaperStudentById" parameterType="integer" resultMap="TTestpaperStudentResult">
+        <include refid="selectTTestpaperStudentVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectTTestpaperStudentListByIds" resultMap="TTestpaperStudentResult">
+        <include refid="selectTTestpaperStudentVo"/>
+        where sjid = #{sjid} and ksid = #{ksid} and xyid = #{xyid}
+    </select>
+
+    <select id="selectTTestpaperStudentInfoByIds" resultMap="TTestpaperStudentResult">
+        <include refid="selectTTestpaperStudentVo"/>
+        where sjid = #{sjid} and ksid = #{ksid} and xyid = #{xyid}
+    </select>
+
+
+    <select id="selectTTestpaperStudentHistoryExamList" resultMap="TTestpaperStudentResult">
+        SELECT
+            e.mc as ksmc,
+            e.kskssj,
+            e.djsc,
+            e.fm,
+            e.fsdj,
+            t.id,
+            t.ksid,
+            t.sjid,
+            t.xyid,
+            t.score,
+            t.create_time,
+            t.update_time,
+            t.hand_time
+        FROM
+            t_testpaper_student t
+        LEFT JOIN t_examination e ON t.ksid = e.id
+        <where>
+            <if test="ksmc != null "> and e.mc like concat('%', #{ksmc}, '%')</if>
+            <if test="xyid != null "> and t.xyid = #{xyid}</if>
+            <if test="ksid != null ">and t.ksid = #{ksid}</if>
+            <if test="createTime != null"> and t.create_time  <![CDATA[ >= ]]> #{createTime} </if>
+            <if test="handTime != null"> and t.hand_time  <![CDATA[ <= ]]> #{handTime} </if>
+        </where>
+        ORDER BY t.create_time DESC
+    </select>
+
+    <insert id="insertTTestpaperStudent" parameterType="TTestpaperStudent" useGeneratedKeys="true" keyProperty="id">
+        insert into t_testpaper_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ksid != null">ksid,</if>
+            <if test="sjid != null">sjid,</if>
+            <if test="xyid != null">xyid,</if>
+            <if test="jd != null">jd,</if>
+            <if test="snapshot != null">snapshot,</if>
+            <if test="snapCreateTime != null">snap_create_time,</if>
+            <if test="da != null">da,</if>
+            <if test="score != null">score,</if>
+            <if test="rate != null">rate,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="handTime != null">handTime,</if>
+            <if test="handType != null">handType,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ksid != null">#{ksid},</if>
+            <if test="sjid != null">#{sjid},</if>
+            <if test="xyid != null">#{xyid},</if>
+            <if test="jd != null">#{jd},</if>
+            <if test="snapshot != null">#{snapshot},</if>
+            <if test="snapCreateTime != null">#{snapCreateTime},</if>
+            <if test="da != null">#{da},</if>
+            <if test="score != null">#{score},</if>
+            <if test="rate != null">#{rate},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="handTime != null">#{handTime},</if>
+            <if test="handType != null">#{handType},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTTestpaperStudent" parameterType="TTestpaperStudent">
+        update t_testpaper_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ksid != null">ksid = #{ksid},</if>
+            <if test="sjid != null">sjid = #{sjid},</if>
+            <if test="xyid != null">xyid = #{xyid},</if>
+            <if test="jd != null">jd = #{jd},</if>
+            <if test="snapshot != null">snapshot = #{snapshot},</if>
+            <if test="snapCreateTime != null">snap_create_time = #{snapCreateTime},</if>
+            <if test="da != null">da = #{da},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="rate != null">rate = #{rate},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="handTime != null">hand_time = #{handTime},</if>
+            <if test="handType != null">hand_type = #{handType},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTTestpaperStudentById" parameterType="String">
+        delete from t_testpaper_student where id = #{id}
+    </delete>
+
+    <delete id="deleteTTestpaperStudentByIds" parameterType="String">
+        delete from t_testpaper_student where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!--查看答题及试卷信息-->
+    <select id="selectAnswerInfo" parameterType="Long" resultType="Map">
+        SELECT
+            ts.id,
+            ts.ksid,
+            ts.sjid,
+            ts.da,
+            ts.score,
+            ts.create_time,
+            ts.pj_teacher,
+            ts.pj_time,
+            ts.pjzt,
+            sn.id as snapshotId,
+            sn.snapshot
+        FROM
+            t_testpaper_student ts
+                LEFT JOIN t_testpaper_snapshot sn ON ts.SNAPSHOT = sn.id
+        WHERE
+            ts.id = #{id} and ts.del_flag='0'
+    </select>
+    <select id="selectIsSubmit" parameterType="Long" resultMap="TTestpaperStudentResult">
+       select ts.id,
+            ts.ksid,
+            ts.sjid,
+            ts.da,
+            ts.score,
+            ts.create_time,
+            ts.hand_time
+        from t_testpaper_student ts where ksid = #{ksid} ORDER BY ts.create_time desc limit 1
+    </select>
+</mapper>

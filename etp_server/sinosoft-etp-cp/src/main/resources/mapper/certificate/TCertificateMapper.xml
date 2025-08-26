@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.certificate.mapper.TCertificateWithCpMapper">
+
+    <resultMap type="TCertificateWithCp" id="TCertificateResult">
+        <result property="id"    column="id"    />
+        <result property="mc"    column="mc"    />
+        <result property="enmc"    column="enmc"    />
+        <result property="ms"    column="ms"    />
+        <result property="dt"    column="dt"    />
+        <result property="lx"    column="lx"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTCertificateVo">
+        select
+            tc.id,
+            tc.mc,
+            tc.enmc,
+            tc.ms,
+            tc.dt,
+            tc.lx,
+            tc.del_flag,
+            tc.create_by,
+            tc.create_time,
+            tc.update_by,
+            tc.update_time,
+            tc.remark,
+            GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_certificate tc
+        <!-- left join t_certificate_company tcc on tc.id = tcc.zsid
+        left join sys_dept sd on sd.dept_id = tcc.qyid -->
+        left join t_certificate_tag tct on tc.id = tct.zsid
+        left join t_tag tt on tt.id = tct.bqid
+    </sql>
+
+    <select id="selectTCertificateList" parameterType="TCertificateWithCp" resultMap="TCertificateResult">
+        <include refid="selectTCertificateVo"/>
+        <where>
+            <if test="mc != null  and mc != ''"> and mc like concat('%', #{mc}, '%')</if>
+            <if test="enmc != null  and enmc != ''"> and enmc like concat('%', #{enmc}, '%')</if>
+            <if test="lx != null  and lx != ''"> and lx = #{lx}</if>
+            <if test="tags != null  and tags != ''">
+                AND tc.id IN (
+                SELECT
+                tct.zsid
+                FROM
+                t_certificate_tag tct
+                WHERE
+                 tct.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                tct.zsid
+               <!-- HAVING
+                count( tct.zsid ) = #{params.tagsCount} -->
+                HAVING
+                count( tct.zsid ) = #{params.tagsCount}
+                )
+        </if>
+        and tc.del_flag = '0'
+        <!-- 数据范围过滤 -->
+       /* ${params.dataScope}*/
+        <!-- 数据权限控制 -->
+        <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY tc.id
+        order by tc.update_time desc
+    </select>
+
+    <select id="selectTCertificateById" parameterType="Long" resultMap="TCertificateResult">
+        <include refid="selectTCertificateVo"/>
+        where tc.id = #{id}
+    </select>
+
+    <insert id="insertTCertificate" parameterType="TCertificateWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_certificate
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mc != null and mc != ''">mc,</if>
+            <if test="enmc != null and enmc != ''">enmc,</if>
+            <if test="ms != null and ms != ''">ms,</if>
+            <if test="dt != null">dt,</if>
+            <if test="lx != null and lx != ''">lx,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mc != null and mc != ''">#{mc},</if>
+            <if test="enmc != null and enmc != ''">#{enmc},</if>
+            <if test="ms != null and ms != ''">#{ms},</if>
+            <if test="dt != null">#{dt},</if>
+            <if test="lx != null and lx != ''">#{lx},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCertificate" parameterType="TCertificateWithCp">
+        update t_certificate
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mc != null and mc != ''">mc = #{mc},</if>
+            <if test="enmc != null and enmc != ''">enmc = #{enmc},</if>
+            <if test="ms != null and ms != ''">ms = #{ms},</if>
+            <if test="dt != null">dt = #{dt},</if>
+            <if test="lx != null and lx != ''">lx = #{lx},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTCertificateById" parameterType="Long">
+        update t_certificate set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTCertificateByIds" parameterType="String">
+        update t_certificate set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

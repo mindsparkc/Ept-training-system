@@ -1,0 +1,372 @@
+body {
+	/* filter: grayscale(100%);
+  -webkit-filter: grayscale(100%); */
+	background-color: #ffffff;
+	/* background-color: #ffffff; */
+	font-size: 28rpx;
+	color: #333333;
+}
+
+/* 默认 */
+scroll-view,
+swiper,
+button,
+input,
+textarea,
+label,
+navigator,
+image {
+	box-sizing: border-box;
+}
+
+button::after {
+	border: none;
+}
+
+/* 文字相关 start*/
+
+.k-text-sm {
+	font-size: 12px;
+}
+
+.k-text-md {
+	font-size: 14px;
+}
+
+.k-text-lg {
+	font-size: 16px;
+}
+
+.k-text-xl {
+	font-size: 18px;
+}
+
+.k-text-xxl {
+	font-size: 20px;
+}
+
+.k-text-black {
+	color: #333333;
+}
+
+.k-text-white {
+	color: #fff;
+}
+
+
+
+.k-text-grey {
+	color: #666666;
+}
+
+.k-text-light-grey {
+	color: #999999;
+}
+
+.k-text-bold {
+	font-weight: bold;
+}
+
+.k-text-center {
+	text-align: center;
+}
+
+.k-text-start {
+	text-align: left;
+}
+
+.k-text-end {
+	text-align: right;
+}
+
+.k-text-justify {
+	text-align: justify;
+}
+
+.k-text-content {
+	line-height: 1.6;
+}
+
+.k-text-ellipsis {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.k-text-ellipsis-2 {
+	display: -webkit-box;
+	overflow: hidden;
+	white-space: normal !important;
+	text-overflow: ellipsis;
+	word-wrap: break-word;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+}
+
+.k-text-clip {
+	-webkit-background-clip: text;
+	color: transparent !important;
+}
+
+.k-text-break-word {
+	word-wrap: break-word;
+}
+
+.k-text-word-break-all {
+	word-break: break-all;
+}
+
+/* 文字相关 end*/
+/* 图标相关 */
+.k-icon-md {
+	width: 24px;
+	height: 24px;
+}
+
+.k-icon-lg {
+	width: 48px;
+	height: 48px;
+}
+
+.k-img-lg {
+	width: 250px;
+
+}
+
+/* flex布局 start */
+
+.k-flex-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.k-flex-col {
+	display: flex;
+	flex-direction: column;
+}
+
+/* flex容器自身垂直方向对齐方式 */
+.k-flex-center {
+	align-self: center;
+}
+
+.k-flex-top {
+	align-self: flex-start;
+}
+
+.k-flex-end {
+	align-self: flex-end;
+}
+
+.k-flex-stretch {
+	align-self: stretch;
+}
+
+/* flex子元素垂直方向对齐方式 */
+.k-flex-col-center {
+	align-items: center;
+}
+
+.k-flex-col-top {
+	align-items: flex-start;
+}
+
+.k-flex-col-bottom {
+	align-items: flex-end;
+}
+
+.k-flex-col-between {
+	align-content: space-between;
+}
+
+.k-flex-col-around {
+	align-content: space-around;
+}
+
+/* flex子元素水平方向对齐方式 */
+.k-flex-row-center {
+	justify-content: center;
+}
+
+.k-flex-row-start {
+	justify-content: flex-start;
+}
+
+.k-flex-row-end {
+	justify-content: flex-end;
+}
+
+.k-flex-row-between {
+	justify-content: space-between;
+}
+
+.k-flex-row-around {
+	justify-content: space-around;
+}
+
+.k-flex-1 {
+	flex: 1;
+}
+
+.k-flex-2 {
+	flex: 2;
+}
+
+.k-flex-3 {
+	flex: 3;
+}
+
+.k-flex-shrink {
+	flex-shrink: 0;
+}
+
+/* flex布局 end */
+/* 间距 start */
+.k-margin-sm {
+	margin: 4px;
+}
+
+.k-margin-top-sm {
+	margin-top: 4px;
+}
+
+.k-margin-bottom-sm {
+	margin-bottom: 4px;
+}
+
+.k-margin-start-sm {
+	margin-left: 4px;
+}
+
+.k-margin-end-sm {
+	margin-right: 4px;
+}
+
+.k-margin-m {
+	margin: 8px;
+}
+
+.k-margin-top-m {
+	margin-top: 8px;
+}
+
+.k-margin-top-m {
+	margin-top: 8px;
+}
+
+.k-margin-bottom-m {
+	margin-bottom: 8px;
+}
+
+.k-margin-start-m {
+	margin-left: 8px;
+}
+
+.k-margin-end-m {
+	margin-right: 8px;
+}
+
+.k-margin-l {
+	margin: 12px;
+}
+
+.k-margin-top-l {
+	margin-top: 12px;
+}
+
+.k-margin-bottom-l {
+	margin-bottom: 12px;
+}
+
+.k-margin-start-l {
+	margin-left: 12px;
+}
+
+.k-margin-end-l {
+	margin-right: 12px;
+}
+
+.k-margin-xl {
+	margin: 20px;
+}
+
+.k-margin-top-xl {
+	margin-top: 20px;
+}
+
+.k-margin-bottom-xl {
+	margin-bottom: 20px;
+}
+
+.k-margin-start-xl {
+	margin-left: 20px;
+}
+
+.k-margin-end-xl {
+	margin-right: 20px;
+}
+
+/* 间距 end */
+/* 基本样式 start */
+
+.k-width-full {
+	width: 100%;
+}
+
+.k-height-full {
+	height: 100%;
+}
+
+/* 基本样式 end */
+
+
+/* hover 点击效果 start */
+.k-hover {
+	opacity: 0.6;
+}
+
+/* hover 点击效果 end */
+
+/* border */
+
+.k-border-s {
+	border-radius: 5px;
+}
+
+.k-border-m {
+	border-radius: 10px;
+}
+
+.k-border-round {
+	border-radius: 50%;
+}
+
+/* shadow */
+.k-shadow {
+	box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* color */
+
+.k-warning {
+	color: #F0AD4E
+}
+
+.k-btn {
+
+	color: #fff;
+	border-radius: 10px;
+	font-size: 34rpx;
+	box-shadow: 0px 2px 5px 0px rgba(22, 99, 255, 0.1);
+	background: -webkit-linear-gradient(to left, #007DFF, #5EC4F9);
+	background: linear-gradient(to left, #007DFF, #5EC4F9);
+
+}
+
+
+
+/*按钮点击效果*/
+.k-btn.button-hover {
+	background: -webkit-linear-gradient(to right, #007DFF, #5EC4F9);
+	background: linear-gradient(to right, #007DFF, #5EC4F9);
+}

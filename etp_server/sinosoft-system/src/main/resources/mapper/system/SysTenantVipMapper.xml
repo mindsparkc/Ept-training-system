@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.system.mapper.SysTenantVipMapper">
+
+    <resultMap type="SysTenantVip" id="SysTenantVipResult">
+        <result property="id"    column="id"    />
+        <result property="vipCode"    column="vip_code"    />
+        <result property="vipName"    column="vip_name"    />
+        <result property="maxDept"    column="max_dept"    />
+        <result property="maxUser"    column="max_user"    />
+        <result property="maxCourseware"    column="max_courseware"    />
+        <result property="maxCurriculum"    column="max_curriculum"    />
+        <result property="maxExam"    column="max_exam"    />
+        <result property="maxFile"    column="max_file"    />
+        <result property="maxFileSize"    column="max_file_size"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectSysTenantVipVo">
+        select id, vip_code, vip_name, max_dept, max_user, max_courseware, max_curriculum, max_exam, max_file, max_file_size, del_flag, create_by, create_time, update_by, update_time from sys_tenant_vip
+    </sql>
+
+    <select id="selectSysTenantVipList" parameterType="SysTenantVip" resultMap="SysTenantVipResult">
+        <include refid="selectSysTenantVipVo"/>
+        <where>
+            <if test="vipCode != null  and vipCode != ''"> and vip_code = #{vipCode}</if>
+            <if test="vipName != null  and vipName != ''"> and vip_name like concat('%', #{vipName}, '%')</if>
+            <if test="maxDept != null "> and max_dept = #{maxDept}</if>
+            <if test="maxUser != null "> and max_user = #{maxUser}</if>
+            <if test="maxCourseware != null "> and max_courseware = #{maxCourseware}</if>
+            <if test="maxCurriculum != null "> and max_curriculum = #{maxCurriculum}</if>
+            <if test="maxExam != null "> and max_exam = #{maxExam}</if>
+            <if test="maxFile != null "> and max_file = #{maxFile}</if>
+            <if test="maxFileSize != null "> and max_file_size = #{maxFileSize}</if>
+        </where>
+    </select>
+
+    <select id="selectSysTenantVipByIds" parameterType="String" resultMap="SysTenantVipResult">
+        <include refid="selectSysTenantVipVo"/>
+        where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectSysTenantVipById" parameterType="Long" resultMap="SysTenantVipResult">
+        <include refid="selectSysTenantVipVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectSysTenantVipByCode" parameterType="String" resultMap="SysTenantVipResult">
+        <include refid="selectSysTenantVipVo"/>
+        where vip_code = #{vipCode}
+    </select>
+
+    <insert id="insertSysTenantVip" parameterType="SysTenantVip">
+        insert into sys_tenant_vip
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="vipCode != null">vip_code,</if>
+            <if test="vipName != null">vip_name,</if>
+            <if test="maxDept != null">max_dept,</if>
+            <if test="maxUser != null">max_user,</if>
+            <if test="maxCourseware != null">max_courseware,</if>
+            <if test="maxCurriculum != null">max_curriculum,</if>
+            <if test="maxExam != null">max_exam,</if>
+            <if test="maxFile != null">max_file,</if>
+            <if test="maxFileSize != null">max_file_size,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="vipCode != null">#{vipCode},</if>
+            <if test="vipName != null">#{vipName},</if>
+            <if test="maxDept != null">#{maxDept},</if>
+            <if test="maxUser != null">#{maxUser},</if>
+            <if test="maxCourseware != null">#{maxCourseware},</if>
+            <if test="maxCurriculum != null">#{maxCurriculum},</if>
+            <if test="maxExam != null">#{maxExam},</if>
+            <if test="maxFile != null">#{maxFile},</if>
+            <if test="maxFileSize != null">#{maxFileSize},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSysTenantVip" parameterType="SysTenantVip">
+        update sys_tenant_vip
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="vipCode != null">vip_code = #{vipCode},</if>
+            <if test="vipName != null">vip_name = #{vipName},</if>
+            <if test="maxDept != null">max_dept = #{maxDept},</if>
+            <if test="maxUser != null">max_user = #{maxUser},</if>
+            <if test="maxCourseware != null">max_courseware = #{maxCourseware},</if>
+            <if test="maxCurriculum != null">max_curriculum = #{maxCurriculum},</if>
+            <if test="maxExam != null">max_exam = #{maxExam},</if>
+            <if test="maxFile != null">max_file = #{maxFile},</if>
+            <if test="maxFileSize != null">max_file_size = #{maxFileSize},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSysTenantVipById" parameterType="Long">
+        delete from sys_tenant_vip where id = #{id}
+    </delete>
+
+    <delete id="deleteSysTenantVipByIds" parameterType="String">
+        delete from sys_tenant_vip where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getCount" parameterType="String" resultType="int">
+        ${value}
+    </select>
+
+</mapper>

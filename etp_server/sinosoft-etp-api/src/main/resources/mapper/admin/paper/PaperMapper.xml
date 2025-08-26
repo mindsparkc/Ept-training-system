@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.paper.mapper.PaperMapper">
+
+    <resultMap type="Paper" id="PaperResult">
+        <result property="paperId"    column="paper_id"    />
+        <result property="version"    column="version"    />
+        <result property="name"    column="name"    />
+        <result property="content"    column="content"    />
+        <result property="strategy"    column="strategy"    />
+        <result property="totalScore"    column="total_score"    />
+        <result property="suggestTime"    column="suggest_time"    />
+        <result property="qualifyScore"    column="qualify_score"    />
+        <result property="quCount"    column="qu_count"    />
+        <result property="status"    column="status"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="relateNum"    column="relate_num"    />
+        <result property="flag"    column="flag"    />
+    </resultMap>
+
+    <sql id="selectPaperVo">
+        select p.paper_id, p.version, p.name, p.content, p.strategy, p.total_score, p.suggest_time, p.qualify_score,
+               p.qu_count, p.status, p.user_id, p.dept_id, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
+               p.flag,
+               (select count(1) from exam e where e.paper_id = p.paper_id )
+        from paper p
+    </sql>
+
+    <select id="selectPaperList" parameterType="PaperQuery" resultMap="PaperResult">
+        <include refid="selectPaperVo"/>
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="content != null  and content != ''"> OR content like concat('%', #{content}, '%')</if>
+            <if test="status != null "> and status = #{status}</if>
+            <!-- 如果有分类，判断是否位于分类内 -->
+            <if test="categoryId != null  and categoryId != '' and categoryId != '0'  and categoryId != '-1' and flag=='train'" >
+             and p.paper_id in (
+                select qic.obj_id from train_inter_category qic, train_category qc
+                where qic.cat_id = qc.cat_id and (qic.cat_id = #{categoryId} or find_in_set(#{categoryId}, qc.ancestors))
+                )
+            </if>
+            <if test="categoryId != null  and categoryId != '' and categoryId != '0'  and categoryId != '-1' and flag!='train'" >
+                and p.paper_id in (
+                select qic.obj_id from paper_inter_category qic, paper_category qc
+                where qic.cat_id = qc.cat_id and (qic.cat_id = #{categoryId} or find_in_set(#{categoryId}, qc.ancestors))
+                )
+            </if>
+            <!-- 未分类 -->
+            <if test="categoryId == '-1' and flag=='train' ">
+                and not exists(select 1 from train_inter_category qic where p.paper_id = qic.obj_id)
+            </if>
+            <if test="categoryId == '-1' and flag !='train' ">
+                and not exists(select 1 from paper_inter_category qic where p.paper_id = qic.obj_id)
+            </if>
+            <if test="flag != null and flag != ''"> and flag = #{flag}</if>
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectPaperByIds" parameterType="String" resultMap="PaperResult">
+        <include refid="selectPaperVo"/>
+        where paper_id in
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+        order by create_time desc
+    </select>
+
+    <select id="selectPaperById" parameterType="Long" resultMap="PaperResult">
+        <include refid="selectPaperVo"/>
+        where paper_id = #{paperId}
+    </select>
+
+    <insert id="insertPaper" parameterType="Paper">
+        insert into paper
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="paperId != null">paper_id,</if>
+            <if test="version != null">version,</if>
+            <if test="name != null">name,</if>
+            <if test="content != null">content,</if>
+            <if test="strategy != null">strategy,</if>
+            <if test="totalScore != null">total_score,</if>
+            <if test="suggestTime != null">suggest_time,</if>
+            <if test="qualifyScore != null">qualify_score,</if>
+            <if test="quCount != null">qu_count,</if>
+            <if test="status != null">status,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="flag != null and flag != ''">flag,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="paperId != null">#{paperId},</if>
+            <if test="version != null">#{version},</if>
+            <if test="name != null">#{name},</if>
+            <if test="content != null">#{content},</if>
+            <if test="strategy != null">#{strategy},</if>
+            <if test="totalScore != null">#{totalScore},</if>
+            <if test="suggestTime != null">#{suggestTime},</if>
+            <if test="qualifyScore != null">#{qualifyScore},</if>
+            <if test="quCount != null">#{quCount},</if>
+            <if test="status != null">#{status},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="flag != null and flag != ''">#{flag},</if>
+
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updatePaper" parameterType="Paper">
+        update paper
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="version != null">version = #{version},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="strategy != null">strategy = #{strategy},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="suggestTime != null">suggest_time = #{suggestTime},</if>
+            <if test="qualifyScore != null">qualify_score = #{qualifyScore},</if>
+            <if test="quCount != null">qu_count = #{quCount},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+        </trim>
+        where paper_id = #{paperId}
+    </update>
+
+    <update id="updatePaperStatus" parameterType="Paper">
+        update paper
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">status = #{status},</if>
+        </trim>
+        where paper_id = #{paperId}
+    </update>
+
+    <delete id="deletePaperById" parameterType="Long">
+        delete from paper where paper_id = #{paperId}
+    </delete>
+
+    <delete id="deletePaperByIds" parameterType="String">
+        delete from paper where paper_id in
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+    </delete>
+
+
+    <!--获取课程中包含的习题集信息-->
+    <select id="getSelectedXtjByKc" resultMap="PaperResult">
+        select p.paper_id, p.version, p.name, p.content, p.strategy, p.total_score, p.suggest_time, p.qualify_score,
+            p.qu_count, p.status, p.user_id, p.dept_id, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark,
+            p.flag
+        from
+            (select sid ,sort
+             from  t_curriculum_content
+             where cid = #{kcid} and source_type='xtj') tc
+                inner join paper p on p.paper_id = tc.sid
+        where p.del_flag = '0'
+        ORDER BY tc.sort
+    </select>
+</mapper>

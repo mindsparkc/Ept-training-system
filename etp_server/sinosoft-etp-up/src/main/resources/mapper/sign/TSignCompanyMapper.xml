@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.sign.mapper.TSignCompanyMapper">
+
+    <resultMap type="TSignCompany" id="TSignCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="signId"    column="sign_id"    />
+        <result property="qyid"    column="qyid"    />
+    </resultMap>
+
+    <sql id="selectTSignCompanyVo">
+        select id, sign_id, qyid from t_sign_company
+    </sql>
+
+    <select id="selectTSignCompanyList" parameterType="TSignCompany" resultMap="TSignCompanyResult">
+        <include refid="selectTSignCompanyVo"/>
+        <where>
+            <if test="signId != null "> and sign_id = #{signId}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+
+    <select id="selectTSignCompanyById" parameterType="Long" resultMap="TSignCompanyResult">
+        <include refid="selectTSignCompanyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTSignCompany" parameterType="TSignCompany" useGeneratedKeys="true" keyProperty="id">
+        insert into t_sign_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="signId != null">sign_id,</if>
+            <if test="qyid != null">qyid,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="signId != null">#{signId},</if>
+            <if test="qyid != null">#{qyid},</if>
+        </trim>
+    </insert>
+
+
+
+    <delete id="deleteTSignCompanyById" parameterType="Long">
+        delete from t_sign_company where sign_id = #{signid}
+    </delete>
+
+    <delete id="deleteTSignCompanyByIds" parameterType="String">
+        delete from t_sign_company where sign_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

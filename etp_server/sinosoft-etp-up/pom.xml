@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>etp_root</artifactId>
+        <groupId>com.sinosoft.etp</groupId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sinosoft.etp</groupId>
+    <artifactId>sinosoft-etp-up</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-etp-core</artifactId>
+        </dependency>
+
+        <!-- fastdfs -->
+        <dependency>
+            <groupId>com.github.tobato</groupId>
+            <artifactId>fastdfs-client</artifactId>
+            <version>1.27.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-etp-api</artifactId>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+</project>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.app.mapper.TAppVersionMapper">
+
+    <resultMap type="TAppVersion" id="TAppVersionResult">
+        <result property="id"    column="id"    />
+        <result property="appId"    column="app_id"    />
+        <result property="versionCode"    column="version_code"    />
+        <result property="versionName"    column="version_name"    />
+        <result property="versionDescribe"    column="version_describe"    />
+        <result property="download"    column="download"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="fileName"    column="file_name"    />
+    </resultMap>
+
+    <sql id="selectTAppVersionVo">
+        select id, app_id, version_code, version_name, version_describe, download, file_name, del_flag, create_by, create_time, update_by, update_time, remark from t_app_version
+    </sql>
+
+    <select id="selectTAppVersionList" parameterType="TAppVersion" resultMap="TAppVersionResult">
+        <include refid="selectTAppVersionVo"/>
+        <where>
+            del_flag = '0'
+            <if test="appId != null "> and app_id = #{appId}</if>
+            <if test="versionCode != null "> and version_code = #{versionCode}</if>
+            <if test="versionName != null  and versionName != ''"> and version_name like concat('%', #{versionName}, '%')</if>
+        </where>
+        order by version_code desc
+    </select>
+
+    <select id="selectTAppVersionById" parameterType="Long" resultMap="TAppVersionResult">
+        <include refid="selectTAppVersionVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectTAppVersionByNow" resultMap="TAppVersionResult">
+        select version_code,version_name,version_describe,download from t_app_version t
+        left join t_app a on t.app_id = a.id where a.app_code = #{appCode} and a.platform = #{platform}
+        and t.del_flag = '0' order by t.version_code desc limit 1;
+    </select>
+
+    <insert id="insertTAppVersion" parameterType="TAppVersion" useGeneratedKeys="true" keyProperty="id">
+        insert into t_app_version
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="appId != null">app_id,</if>
+            <if test="versionCode != null">version_code,</if>
+            <if test="versionName != null">version_name,</if>
+            <if test="versionDescribe != null">version_describe,</if>
+            <if test="download != null">download,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="fileName != null">file_name,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="appId != null">#{appId},</if>
+            <if test="versionCode != null">#{versionCode},</if>
+            <if test="versionName != null">#{versionName},</if>
+            <if test="versionDescribe != null">#{versionDescribe},</if>
+            <if test="download != null">#{download},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="fileName != null">#{fileName},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTAppVersion" parameterType="TAppVersion">
+        update t_app_version
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="appId != null">app_id = #{appId},</if>
+            <if test="versionCode != null">version_code = #{versionCode},</if>
+            <if test="versionName != null">version_name = #{versionName},</if>
+            <if test="versionDescribe != null">version_describe = #{versionDescribe},</if>
+            <if test="download != null">download = #{download},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTAppVersionById" parameterType="Long">
+        <!-- delete from t_app_version where id = #{id} -->
+        update t_app_version set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTAppVersionByIds" parameterType="String">
+        <!--delete from t_app_version where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>-->
+        update t_app_version set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <delete id="deleteByAppId" parameterType="Long">
+        update t_app_version set del_flag = '1' where app_id = #{appId}
+    </delete>
+</mapper>

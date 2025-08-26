@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.subjectResource.mapper.TSubjectResourceWithCpMapper">
+    
+    <resultMap type="TSubjectResourceWithCp" id="TSubjectResourceResult">
+        <result property="id"    column="id"    />
+        <result property="tg"    column="tg"    />
+        <result property="lx"    column="lx"    />
+        <result property="xx"    column="xx"    />
+        <result property="da"    column="da"    />
+        <result property="jx"    column="jx"    />
+        <result property="sflx"    column="sflx"    />
+        <result property="sfks"    column="sfks"    />
+        <result property="ly"    column="ly"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTSubjectResourceVo">
+        select id, tg, lx, xx, da, jx, sflx, sfks, ly, del_flag, create_by, create_time, update_by, update_time, remark from t_subjectresource
+    </sql>
+
+    <select id="selectTSubjectResourceList" parameterType="TSubjectResourceWithCp" resultMap="TSubjectResourceResult">
+        <include refid="selectTSubjectResourceVo"/>
+        <where>  
+            <if test="tg != null  and tg != ''"> and tg = #{tg}</if>
+            <if test="lx != null  and lx != ''"> and lx = #{lx}</if>
+            <if test="xx != null  and xx != ''"> and xx = #{xx}</if>
+            <if test="da != null  and da != ''"> and da = #{da}</if>
+            <if test="jx != null  and jx != ''"> and jx = #{jx}</if>
+            <if test="sflx != null  and sflx != ''"> and sflx = #{sflx}</if>
+            <if test="sfks != null  and sfks != ''"> and sfks = #{sfks}</if>
+            <if test="ly != null  and ly != ''"> and ly = #{ly}</if>
+        </where>
+    </select>
+    
+    <select id="selectTSubjectResourceById" parameterType="Long" resultMap="TSubjectResourceResult">
+        <include refid="selectTSubjectResourceVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTSubjectResource" parameterType="TSubjectResourceWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_subjectresource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tg != null">tg,</if>
+            <if test="lx != null">lx,</if>
+            <if test="xx != null">xx,</if>
+            <if test="da != null">da,</if>
+            <if test="jx != null">jx,</if>
+            <if test="sflx != null">sflx,</if>
+            <if test="sfks != null">sfks,</if>
+            <if test="ly != null">ly,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tg != null">#{tg},</if>
+            <if test="lx != null">#{lx},</if>
+            <if test="xx != null">#{xx},</if>
+            <if test="da != null">#{da},</if>
+            <if test="jx != null">#{jx},</if>
+            <if test="sflx != null">#{sflx},</if>
+            <if test="sfks != null">#{sfks},</if>
+            <if test="ly != null">#{ly},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTSubjectResource" parameterType="TSubjectResourceWithCp">
+        update t_subjectresource
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tg != null">tg = #{tg},</if>
+            <if test="lx != null">lx = #{lx},</if>
+            <if test="xx != null">xx = #{xx},</if>
+            <if test="da != null">da = #{da},</if>
+            <if test="jx != null">jx = #{jx},</if>
+            <if test="sflx != null">sflx = #{sflx},</if>
+            <if test="sfks != null">sfks = #{sfks},</if>
+            <if test="ly != null">ly = #{ly},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTSubjectResourceById" parameterType="Long">
+        delete from t_subjectresource where id = #{id}
+    </delete>
+
+    <delete id="deleteTSubjectResourceByIds" parameterType="String">
+        delete from t_subjectresource where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

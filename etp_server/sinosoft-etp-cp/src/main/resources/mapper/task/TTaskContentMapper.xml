@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.task.mapper.TTaskContentWithCpMapper">
+
+    <resultMap type="TTaskContentWithCp" id="TTaskContentResult">
+        <result property="id"    column="id"    />
+        <result property="rwid"    column="rwid"    />
+        <result property="sid"    column="sid"    />
+        <result property="source_type"    column="source_type"    />
+        <result property="sort"    column="sort"    />
+    </resultMap>
+
+    <sql id="selectTTaskContentVo">
+        select id, rwid, sid, source_type, sort from t_task_content
+    </sql>
+
+    <select id="selectTTaskContentList" parameterType="TTaskContentWithCp" resultMap="TTaskContentResult">
+        <include refid="selectTTaskContentVo"/>
+        <where>
+            <if test="rwid != null "> and rwid = #{rwid}</if>
+            <if test="sid != null "> and sid = #{sid}</if>
+            <if test="source_type != null  and source_type != ''"> and source_type = #{source_type}</if>
+            <if test="sort != null "> and sort = #{sort}</if>
+        </where>
+    </select>
+
+
+    <insert id="insertTTaskContent" parameterType="TTaskContentWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_task_content
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="rwid != null">rwid,</if>
+            <if test="sid != null">sid,</if>
+            <if test="source_type != null">source_type,</if>
+            <if test="sort != null">sort,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="rwid != null">#{rwid},</if>
+            <if test="sid != null">#{sid},</if>
+            <if test="source_type != null">#{source_type},</if>
+            <if test="sort != null">#{sort},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTTaskContent" parameterType="TTaskContentWithCp">
+        update t_task_content
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="rwid != null">rwid = #{rwid},</if>
+            <if test="sid != null">sid = #{sid},</if>
+            <if test="source_type != null">source_type = #{source_type},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTTaskContentById" parameterType="Long">
+        delete from t_task_content where rwid = #{id}
+    </delete>
+
+    <select id="selectTTaskContentListByTaskId" resultType="tTaskContentWithCp">
+        select
+            id,
+            rwid,
+            t.sid,
+            source_type,
+            sort,
+            info.source_name,
+            t.sort
+        from t_task_content t
+        JOIN taskinfo info ON t.sid = info.sid  AND t.source_type=info.type
+        WHERE t.rwid = #{id}
+        ORDER BY t.sort
+    </select>
+
+</mapper>

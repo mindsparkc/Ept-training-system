@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>etp_root</artifactId>
+        <groupId>com.sinosoft.etp</groupId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sinosoft.etp</groupId>
+    <artifactId>sinosoft-etp-cp</artifactId>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <!--若依通用工具-->
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-framework</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-system</artifactId>
+        </dependency>
+
+        <!-- fastdfs -->
+        <dependency>
+            <groupId>com.github.tobato</groupId>
+            <artifactId>fastdfs-client</artifactId>
+            <version>1.27.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-etp-core</artifactId>
+        </dependency>
+
+
+
+        <!-- io常用工具类 -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>${commons.io.version}</version>
+        </dependency>
+
+        <!-- 文件上传工具类 -->
+        <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>${commons.fileupload.version}</version>
+        </dependency>
+
+        <!-- word（doc、docx）工具 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-etp-api</artifactId>
+        </dependency>
+
+    </dependencies>
+
+</project>

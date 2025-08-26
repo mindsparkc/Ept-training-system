@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.paper.mapper.PaperPreviewMapper">
+
+    <resultMap type="PaperPreview" id="PaperPreviewResult">
+        <result property="paperId"    column="paper_id"    />
+        <result property="version"    column="version"    />
+        <result property="content"    column="content"  typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"   />
+    </resultMap>
+
+    <sql id="selectPaperPreviewVo">
+        select paper_id, version, content from paper_preview
+    </sql>
+
+    <select id="selectPaperPreviewList" parameterType="PaperPreview" resultMap="PaperPreviewResult">
+        <include refid="selectPaperPreviewVo"/>
+        <where>
+            <if test="version != null "> and version = #{version}</if>
+            <if test="content != null  and content != ''"> and content = #{content}</if>
+        </where>
+    </select>
+
+    <select id="selectPaperPreviewByIds" parameterType="String" resultMap="PaperPreviewResult">
+        <include refid="selectPaperPreviewVo"/>
+        where paper_id in
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+    </select>
+
+    <select id="selectPaperPreviewById" parameterType="Long" resultMap="PaperPreviewResult">
+        <include refid="selectPaperPreviewVo"/>
+        where paper_id = #{paperId}
+    </select>
+
+    <insert id="insertPaperPreview" parameterType="PaperPreview">
+        insert into paper_preview
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="paperId != null">paper_id,</if>
+            <if test="version != null">version,</if>
+            <if test="content != null">content,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="paperId != null">#{paperId},</if>
+            <if test="version != null">#{version},</if>
+            <if test="content != null">#{content, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler },</if>
+        </trim>
+    </insert>
+
+    <update id="updatePaperPreview" parameterType="PaperPreview">
+        update paper_preview
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="version != null">version = #{version},</if>
+            <if test="content != null">content = #{content, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+        </trim>
+        where paper_id = #{paperId}
+    </update>
+
+    <delete id="deletePaperPreviewById" parameterType="Long">
+        delete from paper_preview where paper_id = #{paperId}
+    </delete>
+
+    <delete id="deletePaperPreviewByIds" parameterType="String">
+        delete from paper_preview where paper_id in
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.system.mapper.SysUserGroupMapper">
+
+    <resultMap type="SysUserGroup" id="SysUserGroupResult">
+        <result property="groupId"    column="group_id"    />
+        <result property="groupName"    column="group_name"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="remarks"    column="remarks"    />
+    </resultMap>
+
+    <sql id="selectSysUserGroupVo">
+        SELECT sug.group_id, sug.group_name, sug.create_by, sug.update_by,
+               sug.create_time, sug.update_time, sug.del_flag, sug.remarks
+        FROM sys_user_group sug
+        <!-- JOIN sys_user_group_company sugc on sug.group_id = sugc.group_id
+        JOIN sys_dept d ON d.dept_id = sugc.qyid -->
+    </sql>
+
+    <select id="selectSysUserGroupList" parameterType="SysUserGroup" resultMap="SysUserGroupResult">
+        <include refid="selectSysUserGroupVo"/>
+        <where>
+            <if test="groupName != null  and groupName != ''"> and sug.group_name like concat('%', #{groupName}, '%')</if>
+            <if test="remarks != null  and remarks != ''"> and sug.remarks = #{remarks}</if>
+            and sug.del_flag = '0'
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+    </select>
+
+    <select id="selectSysUserGroupById" parameterType="Long" resultMap="SysUserGroupResult">
+        <include refid="selectSysUserGroupVo"/>
+        where sug.group_id = #{groupId}
+        and sug.del_flag = '0'
+    </select>
+
+    <insert id="insertSysUserGroup" parameterType="SysUserGroup" useGeneratedKeys="true" keyProperty="groupId">
+        insert into sys_user_group
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="groupName != null and groupName != ''">group_name,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="remarks != null">remarks,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="groupName != null and groupName != ''">#{groupName},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="remarks != null">#{remarks},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysUserGroup" parameterType="SysUserGroup">
+        update sys_user_group
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="groupName != null and groupName != ''">group_name = #{groupName},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="remarks != null">remarks = #{remarks},</if>
+        </trim>
+        where group_id = #{groupId}
+    </update>
+
+    <delete id="deleteSysUserGroupById" parameterType="Long">
+            update sys_user_group
+            set del_flag = 1
+            where group_id = #{groupId};
+    </delete>
+
+    <delete id="deleteSysUserGroupByIds" parameterType="String">
+        update sys_user_group set del_flag = 1 where group_id in
+        <foreach item="groupId" collection="array" open="(" separator="," close=")">
+            #{groupId}
+        </foreach>
+    </delete>
+
+
+    <!--根据用户组Id查询该组下是否存在用户-->
+    <select id="selectByGroupId" resultType="map">
+        select su.user_id from sys_user_group sug
+        join sys_user su on su.group_id = sug.group_id
+    </select>
+</mapper>

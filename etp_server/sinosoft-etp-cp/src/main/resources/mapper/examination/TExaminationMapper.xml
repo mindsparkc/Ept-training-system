@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.examination.mapper.TExaminationWithCpMapper">
+    <resultMap type="TExaminationWithCp" id="TExaminationResult">
+        <result property="id"    column="id"    />
+        <result property="mc"    column="mc"    />
+        <result property="ms"    column="ms"    />
+        <result property="fm"    column="fm"    />
+        <result property="fb"    column="fb"    />
+        <result property="kslj"    column="kslj"    />
+        <result property="kfcd"    column="kfcd"    />
+        <result property="sjid"    column="sjid"    />
+        <result property="kskssj"    column="kskssj"    />
+        <result property="ksjssj"    column="ksjssj"    />
+        <result property="djsc"    column="djsc"    />
+        <result property="dtcs"    column="dtcs"    />
+        <result property="fsdj"    column="fsdj"    />
+        <result property="zfs"    column="zfs"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+        <result property="pushTime"    column="push_time"    />
+        <result property="scoreSet"    column="score_set"    />
+        <result property="showScoreTime"    column="show_score_time"    />
+        <result property="categoryId" column="categoryId"/>
+        <result property="categoryName" column="categoryName"/>
+    </resultMap>
+
+    <sql id="selectTExaminationVo">
+        select e.id, e.mc, e.ms, e.fm, e.fb, e.kslj, e.kfcd, e.sjid, e.kskssj, e.ksjssj,e.push_time, e.djsc,
+        e.dtcs, e.fsdj, e.zfs, e.del_flag, e.create_by, e.create_time, e.update_by, e.update_time, e.remark ,e.score_set
+            ,e.show_score_time,
+        e.categoryId,
+        tg.name as categoryName,
+        GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_examination e
+        <!-- left join  t_examination_company c on e.id = c.ksid-->
+        <!-- 数据过滤 -->
+        <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+        left join t_examination_tag st on e.id = st.ksid
+        left join t_tag tt on st.bqid = tt.id
+        left join t_category tg on tg.id = e.categoryId
+    </sql>
+
+    <select id="selectTExaminationList" parameterType="TExaminationWithCp" resultMap="TExaminationResult">
+        <include refid="selectTExaminationVo"/>
+        <where>
+            <if test="mc != null  and mc != ''"> and mc LIKE concat('%', #{mc}, '%')</if>
+            <if test="ms != null  and ms != ''"> and ms LIKE concat('%', #{ms}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                AND e.id IN (
+                SELECT
+                st.ksid
+                FROM
+                t_examination_tag st
+                WHERE
+                st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.ksid
+                <!--HAVING
+                count( st.ksid ) = #{params.tagsCount}-->
+                )
+            </if>
+            <if test="fm != null  and fm != ''"> and fm = #{fm}</if>
+            <if test="fb != null  and fb != ''"> and fb = #{fb}</if>
+            <if test="kslj != null  and kslj != ''"> and kslj = #{kslj}</if>
+            <if test="kfcd != null  and kfcd != ''"> and kfcd = #{kfcd}</if>
+            <if test="sjid != null "> and sjid = #{sjid}</if>
+            <if test="kskssj != null "> and kskssj = #{kskssj}</if>
+            <if test="ksjssj != null "> and ksjssj = #{ksjssj}</if>
+            <if test="djsc != null "> and djsc = #{djsc}</if>
+            <if test="dtcs != null  and dtcs != ''"> and dtcs = #{dtcs}</if>
+            <if test="fsdj != null  and fsdj != ''"> and fsdj = #{fsdj}</if>
+            <if test="zfs != null "> and zfs = #{zfs}</if>
+            and e.del_flag ="0"
+            <if test="categoryId != null and categoryId != 1">
+                AND (e.categoryId = #{categoryId} OR
+                e.categoryId IN ( SELECT cy.id FROM t_category cy WHERE find_in_set(#{categoryId}, ancestors) ))
+            </if>
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+        GROUP BY e.id
+        order by e.update_time desc
+    </select>
+
+    <select id="selectTExaminationById" parameterType="Long" resultMap="TExaminationResult">
+        <include refid="selectTExaminationVo"/>
+        where e.id = #{id} and e.del_flag ="0"
+    </select>
+
+    <insert id="insertTExamination" parameterType="TExaminationWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_examination
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mc != null">mc,</if>
+            <if test="ms != null">ms,</if>
+            <if test="fm != null">fm,</if>
+            <if test="fb != null">fb,</if>
+            <if test="kslj != null">kslj,</if>
+            <if test="kfcd != null">kfcd,</if>
+            <if test="sjid != null">sjid,</if>
+            <if test="kskssj != null">kskssj,</if>
+            <if test="ksjssj != null">ksjssj,</if>
+            <if test="pushTime != null">push_time,</if>
+            <if test="djsc != null">djsc,</if>
+            <if test="dtcs != null">dtcs,</if>
+            <if test="fsdj != null">fsdj,</if>
+            <if test="zfs != null">zfs,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="scoreSet != null">score_set,</if>
+            <if test="showScoreTime != null">show_score_time,</if>
+            <if test="categoryId != null">categoryId,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mc != null">#{mc},</if>
+            <if test="ms != null">#{ms},</if>
+            <if test="fm != null">#{fm},</if>
+            <if test="fb != null">#{fb},</if>
+            <if test="kslj != null">#{kslj},</if>
+            <if test="kfcd != null">#{kfcd},</if>
+            <if test="sjid != null">#{sjid},</if>
+            <if test="kskssj != null">#{kskssj},</if>
+            <if test="ksjssj != null">#{ksjssj},</if>
+            <if test="pushTime != null">#{pushTime},</if>
+            <if test="djsc != null">#{djsc},</if>
+            <if test="dtcs != null">#{dtcs},</if>
+            <if test="fsdj != null">#{fsdj},</if>
+            <if test="zfs != null">#{zfs},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="scoreSet != null">#{scoreSet},</if>
+            <if test="showScoreTime != null">#{showScoreTime},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTExamination" parameterType="TExaminationWithCp">
+        update t_examination
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mc != null">mc = #{mc},</if>
+            <if test="ms != null">ms = #{ms},</if>
+            <if test="fm != null">fm = #{fm},</if>
+            <if test="fb != null">fb = #{fb},</if>
+            <if test="kslj != null">kslj = #{kslj},</if>
+            <if test="kfcd != null">kfcd = #{kfcd},</if>
+            <if test="sjid != null">sjid = #{sjid},</if>
+            <if test="kskssj != null">kskssj = #{kskssj},</if>
+            <if test="ksjssj != null">ksjssj = #{ksjssj},</if>
+            <if test="pushTime != null">push_time = #{pushTime},</if>
+            <if test="djsc != null">djsc = #{djsc},</if>
+            <if test="dtcs != null">dtcs = #{dtcs},</if>
+            <if test="fsdj != null">fsdj = #{fsdj},</if>
+            <if test="zfs != null">zfs = #{zfs},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="scoreSet != null">score_set = #{scoreSet},</if>
+            <if test="showScoreTime != null">show_score_time = #{showScoreTime},</if>
+            <if test="categoryId != null">categoryId = #{categoryId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateTExaminationFb" parameterType="TExaminationWithCp">
+        update t_examination set fb=#{fb}  where id = #{id}
+    </update>
+    <update id="deleteTExaminationById" parameterType="Long">
+        update  t_examination set del_flag = "1" where id = #{id}
+    </update>
+
+    <update id="deleteTExaminationByIds" parameterType="String">
+        update t_examination set del_flag = "1" where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <!-- update id="updateExamStatus">
+        update t_examination tx
+        LEFT JOIN t_testpaper_student ts on tx.id = ts.ksid set ts.hand_time = NOW(),ts.hand_type = '2'
+        where  tx.ksjssj &lt; NOW() and ts.hand_time is null
+    </update -->
+
+    <update id="updateExamStatus">
+        UPDATE  t_testpaper_student ts JOIN t_examination te
+        set ts.hand_time = now(), ts.hand_type = '2'
+        where  ts.ksid = te.id and hand_type ='0'
+        and DATE_ADD(ts.create_time,INTERVAL 2 SECOND) &lt; now()
+    </update>
+
+    <!--    判断开始是否已经开始（考试开始时间<当前时间）-->
+    <select id="checkExaminations" parameterType="String" resultType="Long">
+        select id from t_examination where now() > kskssj and del_flag='0' and fb = '99' and id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--校验是否有同名的考试-->
+    <select id="checkExistKS" resultMap="TExaminationResult">
+        select t.id,t.mc
+        from
+        t_examination t
+        <!-- LEFT JOIN t_examination_company tc ON t.id = tc.ksid -->
+        <where>
+            t.mc = #{mc} and t.del_flag = '0'
+            <!-- and tc.qyid = #{qyid} -->
+        </where>
+        limit 1
+    </select>
+</mapper>

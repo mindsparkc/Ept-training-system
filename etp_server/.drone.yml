@@ -1,0 +1,191 @@
+# 开发环境发版
+kind: pipeline
+type: docker
+name: deploy dev
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build server<dev>
+    image: alpine:jdk8
+    volumes:
+      - name: cache
+        path: /root/.m2
+    commands:
+      - mvn clean package -P dev
+      - cp sinosoft-admin/target/etp_server.jar bin/
+      - cp -r sinosoft-admin/target/config bin/
+
+  - name: scp server file<dev>
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: dev_etp_host_ip
+      username:
+        from_secret: dev_etp_ssh_username
+      password:
+        from_secret: dev_etp_ssh_password
+      port: 22
+      rm: true
+      target:
+        - /home/projects/etp/etp_server/bin
+      source:
+        - bin/etp*
+        - bin/config/*
+      strip_components: 1
+
+  - name: restart server<dev>
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: dev_etp_host_ip
+      username:
+        from_secret: dev_etp_ssh_username
+      password:
+        from_secret: dev_etp_ssh_password
+      port: 22
+      script:
+        - cd /home/projects/etp/etp_server/bin
+        - sh etp_server.sh restart
+        - sh etp_server.sh status
+
+volumes:
+  - name: cache
+    host:
+      path: /root/.m2
+
+trigger:
+  ref:
+    include:
+      - refs/tags/DEV-*
+
+---
+# 测试环境发版
+kind: pipeline
+type: docker
+name: deploy test
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build server<test>
+    image: alpine:jdk8
+    volumes:
+      - name: cache
+        path: /root/.m2
+    commands:
+      - mvn clean package -P test
+      - cp sinosoft-admin/target/etp_server.jar bin/
+      - cp -r sinosoft-admin/target/config bin/
+
+  - name: scp server file<test>
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: test_etp_host_ip
+      username:
+        from_secret: test_etp_ssh_username
+      password:
+        from_secret: test_etp_ssh_password
+      port: 22
+      rm: true
+      target:
+        - /home/projects/etp/etp_server/bin
+      source:
+        - bin/etp*
+        - bin/config/*
+      strip_components: 1
+
+  - name: restart server<test>
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: test_etp_host_ip
+      username:
+        from_secret: test_etp_ssh_username
+      password:
+        from_secret: test_etp_ssh_password
+      port: 22
+      script:
+        - cd /home/projects/etp/etp_server/bin
+        - sh etp_server.sh restart
+        - sh etp_server.sh status
+
+volumes:
+  - name: cache
+    host:
+      path: /root/.m2
+
+trigger:
+  ref:
+    include:
+      - refs/tags/TEST-*
+
+---
+# 这个环境是给领导看的
+kind: pipeline
+type: docker
+name: deploy uat
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+  - name: build server<uat>
+    image: alpine:jdk8
+    volumes:
+      - name: cache
+        path: /root/.m2
+    commands:
+      - mvn clean package -P uat
+      - cp sinosoft-admin/target/etp_server.jar bin/
+      - cp -r sinosoft-admin/target/config bin/
+
+  - name: scp server file<uat>
+    image: appleboy/drone-scp
+    settings:
+      host:
+        from_secret: uat_etp_host_ip
+      username:
+        from_secret: uat_etp_ssh_username
+      password:
+        from_secret: uat_etp_ssh_password
+      port: 22
+      rm: true
+      target:
+        - /home/projects/etp/etp_server/bin
+      source:
+        - bin/etp*
+        - bin/config/*
+      strip_components: 1
+
+  - name: restart server<uat>
+    image: appleboy/drone-ssh
+    settings:
+      host:
+        from_secret: uat_etp_host_ip
+      username:
+        from_secret: uat_etp_ssh_username
+      password:
+        from_secret: uat_etp_ssh_password
+      port: 22
+      script:
+        - cd /home/projects/etp/etp_server/bin
+        - sh etp_server.sh restart
+        - sh etp_server.sh status
+
+volumes:
+  - name: cache
+    host:
+      path: /root/.m2
+
+trigger:
+  ref:
+    include:
+      - refs/tags/UAT-*
+

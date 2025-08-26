@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.common.mapper.TEventLogMapper">
+    <resultMap type="TEventLog"            id="eventLogResult">
+        <id     property="id"              column="id"/>
+        <result property="userId"          column="user_id"/>
+        <result property="eventType"       column="event_type"/>
+        <result property="kjid"            column="kjid"/>
+        <result property="kcid"            column="kcid"/>
+        <result property="rwid"            column="rwid"/>
+        <result property="ksid"            column="ksid"/>
+        <result property="offset"          column="offset"/>
+        <result property="triggerTime"     column="trigger_time"/>
+        <result property="studyDuration"   column="study_duration"/>
+        <result property="createTime"      column="create_time"/>
+        <result property="specificDate"    column="specific_date"/>
+    </resultMap>
+
+    <select id="selectById">
+
+    </select>
+    <select id="getTeventLogList" resultType="com.sinosoft.etp.common.domain.TEventLog">
+        select id,user_id,event_type,kjid,kcid,rwid,ksid,offset,
+        trigger_time,study_duration,create_time,specific_date
+        from t_event_log
+        where
+        <if test="userId != null  and userId != ''"> and user_id = #{userId}</if>
+        <if test="eventType != null  and eventType != ''"> and event_type = #{eventType}</if>
+        <if test="specificDate != null  and specificDate != ''"> and specific_date = #{specificDate}</if>
+    </select>
+    <select id="selectByKj" resultType="com.sinosoft.etp.common.domain.TEventLog">
+        select kjid,count(kjid) as counts from t_event_log
+        where event_type = #{eventType} and specific_date = #{specificDate} group by kjid
+    </select>
+    <select id="selectStudyByKj" resultType="com.sinosoft.etp.common.domain.TEventLog">
+        select user_id as userId,kjid,study_duration as studyDuration from t_event_log
+        where event_type = #{eventType} and specific_date = #{specificDate}
+    </select>
+    <select id="selectByKc" resultType="com.sinosoft.etp.common.domain.TEventLog">
+        select kcid,count(kcid) as counts from t_event_log
+        where event_type = #{eventType} and specific_date = #{specificDate} group by kcid
+    </select>
+    <select id="selectByKs" resultType="com.sinosoft.etp.common.domain.TEventLog">
+        select ksid,count(ksid) as counts from t_event_log
+        where event_type = #{eventType} and specific_date = #{specificDate} group by ksid
+    </select>
+    <select id="selectByRw" resultType="com.sinosoft.etp.common.domain.TEventLog">
+        select rwid,count(rwid) as counts from t_event_log
+        where event_type = #{eventType} and specific_date = #{specificDate} group by rwid
+    </select>
+
+    <insert id="insertEvent" parameterType="TEventLog" useGeneratedKeys="true" keyProperty="id">
+        insert into t_event_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="eventType != null">event_type,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="kjid != null">kjid,</if>
+            <if test="kcid != null">kcid,</if>
+            <if test="rwid != null">rwid,</if>
+            <if test="ksid != null">ksid,</if>
+            <if test="offset != null">offset,</if>
+            <if test="triggerTime != null">trigger_time,</if>
+            <if test="studyDuration != null">study_duration,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="specificDate != null">specific_date,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="eventType != null">#{eventType},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="kjid != null">#{kjid},</if>
+            <if test="kcid != null">#{kcid},</if>
+            <if test="rwid != null">#{rwid},</if>
+            <if test="ksid != null">#{ksid},</if>
+            <if test="offset != null">#{offset},</if>
+            <if test="triggerTime != null">#{triggerTime},</if>
+            <if test="studyDuration != null">#{studyDuration},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="specificDate != null">#{specificDate},</if>
+        </trim>
+    </insert>
+    <delete id="delEvent" parameterType="String">
+        delete from t_event_log where specific_date = #{specificDate}
+    </delete>
+</mapper>

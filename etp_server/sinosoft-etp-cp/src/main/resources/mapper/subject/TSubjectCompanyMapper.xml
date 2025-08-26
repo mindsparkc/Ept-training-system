@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.subject.mapper.TSubjectCompanyWithCpMapper">
+
+    <resultMap type="TSubjectCompanyWithCp" id="TSubjectCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="tkid"    column="tkid"    />
+        <result property="qyid"    column="qyid"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTSubjectCompanyVo">
+        select id, tkid, qyid, del_flag, create_by, create_time, update_by, update_time, remark from t_subject_company
+    </sql>
+
+    <select id="selectTSubjectCompanyList" parameterType="TSubjectCompanyWithCp" resultMap="TSubjectCompanyResult">
+        <include refid="selectTSubjectCompanyVo"/>
+        <where>
+            <if test="tkid != null "> and tkid = #{tkid}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+
+    <select id="selectTSubjectCompanyById" parameterType="Long" resultMap="TSubjectCompanyResult">
+        <include refid="selectTSubjectCompanyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTSubjectCompany" parameterType="TSubjectCompanyWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_subject_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tkid != null">tkid,</if>
+            <if test="qyid != null">qyid,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tkid != null">#{tkid},</if>
+            <if test="qyid != null">#{qyid},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTSubjectCompany" parameterType="TSubjectCompany">
+        update t_subject_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tkid != null">tkid = #{tkid},</if>
+            <if test="qyid != null">qyid = #{qyid},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTSubjectCompanyById" parameterType="Long">
+        delete from t_subject_company where id = #{id}
+    </delete>
+
+    <delete id="deleteTSubjectCompanyByIds" parameterType="String">
+        delete from t_subject_company where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="deleteSubjectCompanyByTkid" parameterType="Long">
+        <!--update t_subject_company set del_flag = "1" where tkid = #{tkid}-->
+        DELETE FROM  t_subject_company WHERE tkid = #{tkid}
+    </update>
+</mapper>

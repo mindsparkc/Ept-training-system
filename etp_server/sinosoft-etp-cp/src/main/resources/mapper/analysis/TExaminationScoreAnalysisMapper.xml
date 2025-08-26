@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.analysis.mapper.TExaminationScoreAnalysisWithCpMapper">
+    <resultMap type="TExaminationScoreAnalysisWithCp" id="TExaminationScoreAnalysisResult">
+        <result property="id"    column="id"    />
+        <result property="mc"    column="mc"    />
+        <result property="ms"    column="ms"    />
+        <result property="fm"    column="fm"    />
+        <result property="fb"    column="fb"    />
+        <result property="kslj"    column="kslj"    />
+        <result property="kfcd"    column="kfcd"    />
+        <result property="sjid"    column="sjid"    />
+        <result property="kskssj"    column="kskssj"    />
+        <result property="ksjssj"    column="ksjssj"    />
+        <result property="djsc"    column="djsc"    />
+        <result property="dtcs"    column="dtcs"    />
+        <result property="fsdj"    column="fsdj"    />
+        <result property="zfs"    column="zfs"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+    </resultMap>
+
+
+    <sql id="selectTExaminationScoreAnalysisVo">
+        select e.id, e.mc, e.ms, e.fm, e.fb, e.kslj, e.kfcd, e.sjid, e.kskssj, e.ksjssj, e.djsc,
+        e.dtcs, e.fsdj, e.zfs, e.del_flag, e.create_by, e.create_time, e.update_by, e.update_time, e.remark ,
+        GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_examination e
+        <!-- left join  t_examination_company c on e.id = c.ksid -->
+        <!-- 数据过滤 -->
+        <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+        left join t_examination_tag st on e.id = st.ksid
+        left join t_tag tt on st.bqid = tt.id
+    </sql>
+
+    <select id="selectTExaminationScoreAnalysisList" parameterType="TExaminationScoreAnalysisWithCp" resultMap="TExaminationScoreAnalysisResult">
+        <include refid="selectTExaminationScoreAnalysisVo"/>
+        <where>
+            <if test="mc != null  and mc != ''"> and mc like concat('%', #{mc}, '%') </if>
+            <if test="ms != null  and ms != ''"> and ms = #{ms}</if>
+            <if test="tags != null  and tags != ''">
+                AND e.id IN (
+                SELECT
+                st.ksid
+                FROM
+                t_examination_tag st
+                WHERE
+                st.del_flag = '0'
+                AND st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.ksid
+                HAVING
+                count( st.ksid ) = #{params.tagsCount}
+                )
+            </if>
+            <if test="fm != null  and fm != ''"> and fm = #{fm}</if>
+            <if test="fb != null  and fb != ''"> and fb = #{fb}</if>
+            <if test="kslj != null  and kslj != ''"> and kslj = #{kslj}</if>
+            <if test="kfcd != null  and kfcd != ''"> and kfcd = #{kfcd}</if>
+            <if test="sjid != null "> and sjid = #{sjid}</if>
+            <if test="kskssj != null "> and kskssj = #{kskssj}</if>
+            <if test="ksjssj != null "> and ksjssj = #{ksjssj}</if>
+            <if test="djsc != null "> and djsc = #{djsc}</if>
+            <if test="dtcs != null  and dtcs != ''"> and dtcs = #{dtcs}</if>
+            <if test="fsdj != null  and fsdj != ''"> and fsdj = #{fsdj}</if>
+            <if test="zfs != null "> and zfs = #{zfs}</if>
+            and e.del_flag ="0"
+            and e.fb='99'
+            <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+        GROUP BY e.id
+        order by e.update_time desc
+    </select>
+
+    <select id="selectTExaminationScoreAnalysisById" parameterType="Long" resultMap="TExaminationScoreAnalysisResult">
+        <include refid="selectTExaminationScoreAnalysisVo"/>
+        where e.id = #{id} and e.del_flag ="0"
+    </select>
+    <select id="selectExamNum" resultType="java.lang.Integer">
+        select count(1) from t_examination_student s left join sys_user c on s.xyid = c.user_id
+        where s.ksid = #{id} and c.dept_id = #{deptId}
+    </select>
+
+    <select id="selectDeptAndExaminationWithCpList" resultType="com.sinosoft.etp.cp.analysis.domain.DeptAndExaminationWithCp">
+        select d.dept_id as deptId, d.parent_id as parentId, d.ancestors, d.dept_name as deptName,
+        d.order_num as orderNum, d.leader, d.phone, d.email, d.status, d.del_flag as del_flag,
+        d.create_by as createBy, d.create_time as createTime
+        from sys_dept d where d.del_flag = '0'
+        <if test="deptId != null and deptId != 0">
+            AND dept_id = #{deptId}
+        </if>
+        <if test="parentId != null and parentId != 0">
+            AND parent_id = #{parentId}
+        </if>
+        order by d.parent_id, d.order_num
+    </select>
+    <select id="selectPracticeNum" resultType="java.lang.Integer">
+        select count(distinct t.xyid) from t_testpaper_student t left join sys_user s on t.xyid = s.user_id
+        where t.ksid = #{id} and s.dept_id = #{deptId} and t.hand_time is not null
+    </select>
+
+    <select id="getTkid" resultType="long">
+        select t.tkid from t_testpaper_subject  t where t.sjid = #{sjid}
+    </select>
+    <select id="getSubjectInfo" resultType="com.sinosoft.etp.cp.analysis.domain.SubjectAndExaminationWithCp">
+        select id,tg,lx,xx,da,jx from t_subject where lx not in('4','5') and id=#{tkid}
+    </select>
+
+    <select id="getYhda" resultType="string">
+        select da->#{daPath} from t_testpaper_student where ksid = #{ksid} and da is not null
+    </select>
+
+
+</mapper>

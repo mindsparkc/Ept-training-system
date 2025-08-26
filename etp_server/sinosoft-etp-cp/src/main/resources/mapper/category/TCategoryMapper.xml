@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.category.mapper.TCategoryMapper">
+
+    <resultMap type="TCategory" id="TCategoryResult">
+        <result property="id"    column="id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="name"    column="name"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="sfxs"    column="sfxs"    />
+    </resultMap>
+
+    <sql id="selectTCategoryVo">
+        select c.id, c.parent_id, c.ancestors, c.name, c.del_flag, c.create_by, c.create_time, c.update_by, c.update_time, c.sfxs
+        from t_category c
+        <!-- 数据过滤 -->
+    <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+</sql>
+
+<select id="selectTCategoryList" parameterType="TCategory" resultMap="TCategoryResult">
+    <include refid="selectTCategoryVo"/>
+    <where>
+        c.del_flag = '0'
+        <if test="parentId != null "> and c.parent_id = #{parentId}</if>
+        <if test="ancestors != null  and ancestors != ''"> and c.ancestors = #{ancestors}</if>
+        <if test="sfxs != null  and sfxs != ''"> and c.sfxs = #{sfxs}</if>
+        <if test="name != null  and name != ''"> and c.name like concat('%', #{name}, '%')</if>
+    </where>
+</select>
+
+<select id="selectTCategoryById" parameterType="Long" resultMap="TCategoryResult">
+    <include refid="selectTCategoryVo"/>
+    where id = #{id}
+</select>
+
+<insert id="insertTCategory" parameterType="TCategory" useGeneratedKeys="true" keyProperty="id">
+    insert into t_category
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="parentId != null">parent_id,</if>
+        <if test="ancestors != null">ancestors,</if>
+        <if test="name != null">name,</if>
+        <!-- if test="qyid != null">qyid,</if -->
+        <if test="delFlag != null">del_flag,</if>
+        <if test="createBy != null">create_by,</if>
+        <if test="createTime != null">create_time,</if>
+        <if test="updateBy != null">update_by,</if>
+        <if test="updateTime != null">update_time,</if>
+     </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+        <if test="parentId != null">#{parentId},</if>
+        <if test="ancestors != null">#{ancestors},</if>
+        <if test="name != null">#{name},</if>
+        <!-- if test="qyid != null">#{qyid},</if -->
+        <if test="delFlag != null">#{delFlag},</if>
+        <if test="createBy != null">#{createBy},</if>
+        <if test="createTime != null">#{createTime},</if>
+        <if test="updateBy != null">#{updateBy},</if>
+        <if test="updateTime != null">#{updateTime},</if>
+     </trim>
+</insert>
+
+<update id="updateTCategory" parameterType="TCategory">
+    update t_category
+    <trim prefix="SET" suffixOverrides=",">
+        <if test="parentId != null">parent_id = #{parentId},</if>
+        <if test="ancestors != null">ancestors = #{ancestors},</if>
+        <if test="name != null">name = #{name},</if>
+        <if test="delFlag != null">del_flag = #{delFlag},</if>
+        <if test="createBy != null">create_by = #{createBy},</if>
+        <if test="createTime != null">create_time = #{createTime},</if>
+        <if test="updateBy != null">update_by = #{updateBy},</if>
+        <if test="updateTime != null">update_time = #{updateTime},</if>
+        <if test="sfxs != null">sfxs = #{sfxs},</if>
+    </trim>
+    where id = #{id}
+</update>
+
+<delete id="deleteTCategoryById" parameterType="Long">
+    delete from t_category where id = #{id}
+</delete>
+
+<delete id="deleteTCategoryByIds" parameterType="String">
+    delete from t_category where id in
+    <foreach item="id" collection="array" open="(" separator="," close=")">
+        #{id}
+    </foreach>
+</delete>
+
+<!--    校验名称是否唯一-->
+    <select id="checkCategoryNameUnique" resultMap="TCategoryResult">
+        <include refid="selectTCategoryVo"/>
+        where c.name=#{name} and c.parent_id = #{parentId} limit 1
+    </select>
+
+    <!--校验分类下是否有子分类-->
+    <select id="hasChildByCategoryId" parameterType="Long" resultType="int">
+        select count(1) from t_category
+        where del_flag = '0' and parent_id = #{id} limit 1
+    </select>
+    <!--校验分类下是否有课件-->
+    <select id="checkCategoryExistKJ" parameterType="Long" resultType="int">
+        select count(1) from t_courseware where categoryId = #{categoryId} and del_flag = '0'
+    </select>
+    <!--校验分类下是否有课程-->
+    <select id="checkCategoryExistKC" parameterType="Long" resultType="int">
+        select count(1) from t_curriculum where categoryId = #{categoryId} and del_flag = '0'
+    </select>
+    <!--校验分类下是否有题目-->
+    <select id="checkCategoryExistTM" parameterType="Long" resultType="int">
+        select count(1) from t_subject where categoryId = #{categoryId} and del_flag = '0'
+    </select>
+    <!--校验分类下是否有试卷-->
+    <select id="checkCategoryExistSJ" parameterType="Long" resultType="int">
+        select count(1) from t_testpaper where categoryId = #{categoryId} and del_flag = '0'
+    </select>
+    <!--校验分类下是否有考试-->
+    <select id="checkCategoryExistKS" parameterType="Long" resultType="int">
+        select count(1) from t_examination where categoryId = #{categoryId} and del_flag = '0'
+    </select>
+</mapper>

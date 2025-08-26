@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.task.mapper.TTaskWithCpMapper">
+
+    <resultMap type="TTaskWithCp" id="TTaskResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fmt" column="fmt"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="taskBeginTime" column="task_begin_time"/>
+        <result property="taskEndTime" column="task_end_time"/>
+        <result property="taskSendTime" column="task_send_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <sql id="selectTTaskVo">
+        select t.id,
+               t.mc,
+               t.ms,
+               t.fmt,
+               t.kfcd,
+               t.states,
+               t.task_begin_time,
+               t.task_end_time,
+               t.task_send_time,
+               t.del_flag,
+               t.create_by,
+               t.create_time,
+               t.update_by,
+               t.update_time,
+               t.remark,
+               GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_task t
+        <!-- LEFT JOIN t_task_company tc ON t.id = tc.rwid
+        LEFT JOIN sys_dept d ON d.dept_id = tc.qyid -->
+        LEFT JOIN t_task_tag st ON t.id = st.rwid
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+    </sql>
+
+    <select id="selectTTaskList" parameterType="TTask" resultMap="TTaskResult">
+        <include refid="selectTTaskVo"/>
+        <where>
+            <if test="mc != null  and mc != ''">and mc like concat('%', #{mc}, '%')</if>
+            <if test="ms != null  and ms != ''">and ms like concat('%', #{ms}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                AND t.id IN (
+                SELECT
+                st.rwid
+                FROM
+                t_task_tag st
+                WHERE
+                st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.rwid
+                <!--HAVING
+                count( st.rwid ) = #{params.tagsCount}-->
+                )
+            </if>
+            <if test="fmt != null  and fmt != ''">and fmt = #{fmt}</if>
+            <if test="kfcd != null  and kfcd != ''">and kfcd = #{kfcd}</if>
+            <if test="taskBeginTime != null ">and task_begin_time = #{taskBeginTime}</if>
+            <if test="taskEndTime != null ">and task_end_time = #{taskEndTime}</if>
+            AND t.del_flag = '0'
+            <!-- 数据权限控制 -->
+            <!--
+           <if test="params.dataScope != null and params.dataScope != ''">${params.dataScope}</if>
+            -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY t.id
+        ORDER BY t.update_time DESC,t.create_time DESC
+    </select>
+
+    <select id="selectTTaskById" parameterType="Long" resultMap="TTaskResult">
+        <include refid="selectTTaskVo"/>
+        AND t.del_flag = '0' AND st.del_flag = '0'
+        where t.id = #{id}
+    </select>
+
+    <insert id="insertTTask" parameterType="TTask" useGeneratedKeys="true" keyProperty="id">
+        insert into t_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mc != null">mc,</if>
+            <if test="ms != null">ms,</if>
+            <if test="fmt != null">fmt,</if>
+            <if test="kfcd != null">kfcd,</if>
+            <if test="states != null">states,</if>
+            <if test="taskBeginTime != null">task_begin_time,</if>
+            <if test="taskEndTime != null">task_end_time,</if>
+            <if test="taskSendTime != null">task_send_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mc != null">#{mc},</if>
+            <if test="ms != null">#{ms},</if>
+            <if test="fmt != null">#{fmt},</if>
+            <if test="kfcd != null">#{kfcd},</if>
+            <if test="states != null">#{states},</if>
+            <if test="taskBeginTime != null">#{taskBeginTime},</if>
+            <if test="taskEndTime != null">#{taskEndTime},</if>
+            <if test="taskSendTime != null">#{taskSendTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTTask" parameterType="TTask">
+        update t_task
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mc != null">mc = #{mc},</if>
+            <if test="ms != null">ms = #{ms},</if>
+            <if test="fmt != null">fmt = #{fmt},</if>
+            <if test="kfcd != null">kfcd = #{kfcd},</if>
+            <if test="states != null">states = #{states},</if>
+            <if test="taskBeginTime != null">task_begin_time = #{taskBeginTime},</if>
+            <if test="taskEndTime != null">task_end_time = #{taskEndTime},</if>
+            <if test="taskSendTime != null">task_send_time = #{taskSendTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTTaskById" parameterType="Long">
+        update
+        t_task set del_flag = '1'
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteTTaskByIds" parameterType="String">
+        update  t_task set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <update id="pushBack">
+        update t_task set states = '0' where id = #{id}
+    </update>
+
+
+    <!--校验是否有同名的试卷-->
+    <select id="checkExistRW" resultMap="TTaskResult">
+        select t.id,t.mc
+        from
+        t_task t
+        <!-- LEFT JOIN t_task_company tc ON t.id = tc.rwid -->
+        <where>
+            t.mc = #{mc} and t.del_flag = '0'
+            <!-- and tc.qyid = #{qyid} -->
+        </where>
+        limit 1
+    </select>
+</mapper>

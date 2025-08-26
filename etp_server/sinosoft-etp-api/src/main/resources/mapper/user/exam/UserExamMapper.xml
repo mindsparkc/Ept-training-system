@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.user.exam.mapper.UserExamMapper">
+
+    <resultMap type="UserSimpleExam" id="ExamResult">
+        <result property="examId"    column="exam_id"    />
+        <result property="name"    column="name"    />
+        <result property="content"    column="content"    />
+        <result property="cover"    column="cover"    />
+        <result property="openType"    column="open_type"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="totalTime"    column="total_time"    />
+        <result property="handMinTime"    column="hand_min_time"    />
+        <result property="chance"    column="chance"    />
+        <result property="usedChance"    column="usedChance"    />
+        <result property="qualifyScore"    column="qualify_score"    />
+        <result property="timeLimit"    column="time_limit"    />
+        <result property="publishTime"    column="publish_time"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="lateTime"    column="late_time"    />
+        <result property="leaveLimit"    column="leave_limit"    />
+        <result property="noActLimit"    column="no_act_limit"    />
+        <result property="showScore"    column="show_score"    />
+        <result property="showScoreTime"    column="show_score_time"    />
+        <result property="showExam"    column="show_exam"    />
+        <result property="showComment"    column="show_comment"    />
+        <result property="answerDriver"    column="answer_driver"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="totalScore"    column="total_score"    />
+    </resultMap>
+
+    <sql id="selectExamVo">
+        select exam_id, name, content, cover, open_type, password, paper_id, status, total_time, hand_min_time, chance, qualify_score,
+               time_limit, publish_time, start_time, end_time, late_time, leave_limit, no_act_limit, show_score, show_score_time,
+               show_exam, show_comment, answer_driver, user_id, dept_id, del_flag, create_by, create_time, update_by, update_time,
+               remark from exam ex
+    </sql>
+
+    <!-- 查询用户考试列表 -->
+    <!-- TODO: 需要添加权限判断，仅能看到自己有权限看到的考试 20250521 lyd已改 -->
+    <!-- TODO: 发布时间是否已到 -->
+    <select id="selectUserExamList" parameterType="UserExamReqQuery" resultMap="ExamResult">
+        select ex.exam_id,
+        ex.name, ex.content, ex.cover, ex.open_type, ex.password, ex.paper_id, ex.status, ex.total_time, ex.hand_min_time, ex.chance, ex.qualify_score, ex.time_limit,
+        ex.publish_time, ex.start_time, ex.end_time, ex.late_time, ex.leave_limit, ex.no_act_limit, ex.show_score, ex.show_score_time, ex.show_exam, ex.show_comment,
+        ex.answer_driver, ex.user_id, ex.dept_id, ex.del_flag, ex.create_by, ex.create_time, ex.update_by, ex.update_time, ex.remark,
+        (select count(1) from exam_record er where er.user_id = #{userId} and er.exam_id = ex.exam_id) usedChance,
+        ifnull(pp.total_score, 0)  total_score
+        from exam ex left join paper pp on ex.paper_id = pp.paper_id
+        <where>
+            and ex.publish_time &lt;= now()
+            <if test="name != null  and name != ''"> and ex.name like concat('%', #{name}, '%')</if>
+            <if test="content != null  and content != ''"> and ex.content like concat('%', #{content}, '%')</if>
+            <if test="openType != null  and openType != ''"> and ex.open_type =#{openType}</if>
+            and ex.status="2" and (ex.del_flag="0" or ex.del_flag is null)
+            <!-- 发布范围老的方法 用1==2 来屏蔽保留痕迹-->
+            <if test="1 == 2">
+            and (
+            <!-- 1公开 2部门 3群组 4限定成员 5口令密码 -->
+            ex.open_type in ('1', '5')
+            or ex.exam_id in (select exam_id from exam_open_rule eor
+            <where>
+                <if test="deptId != null  and deptId != ''"> or (eor.`type`='2' and eor.limit_id =#{deptId})</if>
+                <if test="postIds != null  and postIds != ''"> or (eor.`type`='3' and eor.limit_id in
+                    <foreach item="postIds" collection="postIds" open="(" separator="," close=")">
+                        #{postIds}
+                    </foreach>
+                    )
+                </if>
+                <if test="userId != null  and userId != ''"> or (eor.`type`='4' and eor.limit_id =#{userId})</if>
+            </where>
+            )
+            )
+            </if>
+            <!--发布范围 新写法 可以增加0表示默认权限，由系统统计数据权限控制-->
+            and exam_id in(
+            select exam_id from exam where open_type='1' union select exam_id from exam where open_type='5'
+            <if test="deptId != null  and deptId != ''">
+                union select exam_id from exam_open_rule where type='2' and limit_id=#{deptId}
+            </if>
+            <if test="postIds != null  and postIds != ''">
+                union select exam_id from exam_open_rule where type='3' and limit_id in <foreach item="postId" collection="postIds" open="(" separator="," close=")">#{postId}</foreach>
+            </if>
+            <if test="userId != null  and userId != ''">
+                union select exam_id from exam_open_rule where type='4' and limit_id=#{userId}
+            </if>
+            <!--新建一个类型，系统默认权限0  控制方式1
+            union select exam_id from exam where open_type='0' ${params.etpDataScope}-->
+            )
+            <!--控制方式2 两处使用，不能加别名 todo：用哪一种？？-->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        <choose>
+            <when test="orders != null  and orders != ''">
+                order by ${orders}
+                <!-- 用 ;、, 分割的两层 -->
+<!--                <foreach item="item1" collection="orders.split(';')" separator="," >-->
+<!--                    <foreach item="item2" collection="item1.split(',')">-->
+<!--                        #{item2}-->
+<!--                    </foreach>-->
+<!--                </foreach>-->
+            </when>
+            <otherwise>
+                order by ex.update_time desc
+            </otherwise>
+        </choose>
+
+    </select>
+
+    <!-- 查询考试详情 -->
+    <select id="selectUserExamInfo" parameterType="UserExamReqQuery" resultMap="ExamResult">
+        select exam_id,
+               name, content, cover, open_type, password, paper_id, status, total_time, hand_min_time, chance, qualify_score, time_limit,
+               publish_time, start_time, end_time, late_time, leave_limit, no_act_limit, show_score, show_score_time, show_exam, show_comment,
+               answer_driver, user_id, dept_id, del_flag, create_by, create_time, update_by, update_time, remark,
+               (select count(1) from exam_record er where er.user_id = #{userId} and er.exam_id = ex.exam_id) usedChance
+        from exam ex
+        where exam_id=#{examId}
+        <!-- 发布范围老的方法 用1==2 来屏蔽保留痕迹-->
+        <if test="1 == 2">
+        and (
+        <!-- 1公开 2部门 3群组 4限定成员 5口令密码 -->
+        open_type in ('1', '5')
+        or ex.exam_id in (select exam_id from exam_open_rule eor
+        <where>
+            <if test="deptId != null  and deptId != ''"> or (eor.`type`='2' and eor.limit_id =#{deptId})</if>
+            <if test="postIds != null  and postIds != ''"> or (eor.`type`='3' and eor.limit_id in
+                <foreach item="postIds" collection="postIds" open="(" separator="," close=")">
+                    #{postIds}
+                </foreach>
+                )
+            </if>
+            <if test="userId != null  and userId != ''"> or (eor.`type`='4' and eor.limit_id =#{userId})</if>
+        </where>
+        )
+        )
+        </if>
+        <!--发布范围 新写法 可以增加0表示默认权限，由系统统计数据权限控制-->
+        and exam_id in(
+        select exam_id from exam where open_type='1' union select exam_id from exam where open_type='5'
+        <if test="deptId != null  and deptId != ''">
+            union select exam_id from exam_open_rule where type='2' and limit_id=#{deptId}
+        </if>
+        <if test="postIds != null  and postIds != ''">
+            union select exam_id from exam_open_rule where type='3' and limit_id in <foreach item="postId" collection="postIds" open="(" separator="," close=")">#{postId}</foreach>
+        </if>
+        <if test="userId != null  and userId != ''">
+            union select exam_id from exam_open_rule where type='4' and limit_id=#{userId}
+        </if>
+        <!--新建一个类型，系统默认权限0  控制方式1
+        union select exam_id from exam where open_type='0' ${etpDataScope}-->
+        )
+        <!--控制方式2 两处使用，不能加别名 todo：用哪一种？？-->
+        <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+    </select>
+
+    <select id="selectComingEndExam" parameterType="UserExamReqQuery" resultMap="ExamResult">
+        select exam_id,
+        name, content, cover, open_type, password, paper_id, status, total_time, hand_min_time, chance, qualify_score, time_limit,
+        publish_time, start_time, end_time, late_time, leave_limit, no_act_limit, show_score, show_score_time, show_exam, show_comment,
+        answer_driver, user_id, dept_id, del_flag, create_by, create_time, update_by, update_time, remark,
+        (select count(1) from exam_record er where er.user_id = #{userId} and er.exam_id = ex.exam_id) usedChance
+        from exam ex
+        where status = '2' and end_time is not null
+        and end_time  BETWEEN  NOW() and DATE_ADD(CURRENT_TIMESTAMP(),INTERVAL 3 DAY)
+        <!-- 发布范围老的方法 用1==2 来屏蔽保留痕迹-->
+        <if test="1 == 2">
+        and (
+        <!-- 1公开 2部门 3群组 4限定成员 5口令密码 -->
+        open_type in ('1', '5')
+        or ex.exam_id in (select exam_id from exam_open_rule eor
+            <where>
+                <if test="deptId != null  and deptId != ''"> or (eor.`type`='2' and eor.limit_id =#{deptId})</if>
+                <if test="postIds != null  and postIds != ''"> or (eor.`type`='3' and eor.limit_id in
+                    <foreach item="postId" collection="postIds" open="(" separator="," close=")">
+                        #{postId}
+                    </foreach>
+                    )
+                </if>
+                <if test="userId != null  and userId != ''"> or (eor.`type`='4' and eor.limit_id =#{userId})</if>
+
+            </where>
+            )
+        )
+        </if>
+        <!--发布范围 新写法 可以增加0表示默认权限，由系统统计数据权限控制-->
+        and exam_id in(
+        select exam_id from exam where open_type='1' union select exam_id from exam where open_type='5'
+        <if test="deptId != null  and deptId != ''">
+            union select exam_id from exam_open_rule where type='2' and limit_id=#{deptId}
+        </if>
+        <if test="postIds != null  and postIds != ''">
+            union select exam_id from exam_open_rule where type='3' and limit_id in <foreach item="postId" collection="postIds" open="(" separator="," close=")">#{postId}</foreach>
+        </if>
+        <if test="userId != null  and userId != ''">
+            union select exam_id from exam_open_rule where type='4' and limit_id=#{userId}
+        </if>
+        <!--新建一个类型，系统默认权限0  控制方式1
+        union select exam_id from exam where open_type='0' ${etpDataScope}-->
+        )
+        <!--控制方式2 两处使用，不能加别名 todo：用哪一种？？-->
+        <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+
+        order by ex.end_time asc limit 1
+    </select>
+
+    <!--发布范围 原来的写法-->
+    <!--and (
+    &lt;!&ndash; 1公开 2部门 3群组 4限定成员 5口令密码 &ndash;&gt;
+    open_type in ('1', '5') or ex.exam_id in (select exam_id from exam_open_rule eor
+    &lt;!&ndash; eor.type：数据库字段备注如下，但是是错误的，规则类型（1限定部门 2限定群组 3限定用户 4限定岗位）
+    实际字段值和主表即考试的公开规则字段open_type的值相同 即 2/3/4 为部门/岗位/人员&ndash;&gt;
+    <where>
+        <if test="deptId != null  and deptId != ''"> or (eor.`type`='2' and eor.limit_id =#{deptId})</if>
+        <if test="postIds != null  and postIds != ''"> or (eor.`type`='3' and eor.limit_id in
+            <foreach item="postId" collection="postIds" open="(" separator="," close=")">#{postId}</foreach>
+            )
+        </if>
+        <if test="userId != null  and userId != ''"> or (eor.`type`='4' and eor.limit_id =#{userId})</if>
+    </where>
+    ))-->
+    <select id="selectCountNum" resultType="java.lang.Integer">
+        select count(1) from (
+            select exam_id,
+                name, content, cover, open_type, password, paper_id, status, total_time, hand_min_time, chance, qualify_score, time_limit,
+                publish_time, start_time, end_time, late_time, leave_limit, no_act_limit, show_score, show_score_time, show_exam, show_comment,
+                answer_driver, user_id, dept_id, del_flag, create_by, create_time, update_by, update_time, remark,
+                (select count(1) from exam_record er where er.user_id = #{userId} and er.exam_id = ex.exam_id) usedChance
+                from exam ex  where status = '2'
+                <if test="type == 'jks'">
+                    AND start_time BETWEEN NOW() and DATE_SUB(CURRENT_TIMESTAMP(),INTERVAL 3 DAY)
+                </if>
+                <if test="type == 'jjs'">
+                    AND end_time  BETWEEN  NOW() and DATE_ADD(CURRENT_TIMESTAMP(),INTERVAL 3 DAY)
+                </if>
+                <!--发布范围 新写法 可以增加0表示默认权限，由系统统计数据权限控制-->
+                and exam_id in(
+                    select exam_id from exam where open_type='1' union select exam_id from exam where open_type='5'
+                    <if test="deptId != null  and deptId != ''">
+                        union select exam_id from exam_open_rule where type='2' and limit_id=#{deptId}
+                    </if>
+                    <if test="postIds != null  and postIds != ''">
+                        union select exam_id from exam_open_rule where type='3' and limit_id in <foreach item="postId" collection="postIds" open="(" separator="," close=")">#{postId}</foreach>
+                    </if>
+                    <if test="userId != null  and userId != ''">
+                        union select exam_id from exam_open_rule where type='4' and limit_id=#{userId}
+                    </if>
+                    <!--新建一个类型，系统默认权限0  控制方式1
+                    union select exam_id from exam where open_type='0' ${etpDataScope}-->
+                )
+                <!--控制方式2 两处使用，不能加别名 todo：用哪一种？？-->
+                ${etpDataScope}
+        ) as counts
+    </select>
+
+</mapper>

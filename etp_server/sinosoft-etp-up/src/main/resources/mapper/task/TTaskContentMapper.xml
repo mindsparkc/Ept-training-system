@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.task.mapper.TTaskContentMapper">
+
+    <resultMap type="TTaskContent" id="TTaskContentResult">
+        <result property="id"    column="id"    />
+        <result property="rwid"    column="rwid"    />
+        <result property="sid"    column="sid"    />
+        <result property="source_type"    column="source_type"    />
+        <result property="sort"    column="sort"    />
+    </resultMap>
+
+    <sql id="selectTTaskContentVo">
+        select id, rwid, sid, source_type, sort from t_task_content
+    </sql>
+
+    <select id="selectTTaskContentList" parameterType="TTaskContent" resultMap="TTaskContentResult">
+        <include refid="selectTTaskContentVo"/>
+        <where>
+            <if test="rwid != null "> and rwid = #{rwid}</if>
+            <if test="sid != null "> and sid = #{sid}</if>
+            <if test="source_type != null  and source_type != ''"> and source_type = #{source_type}</if>
+            <if test="sort != null "> and sort = #{sort}</if>
+        </where>
+    </select>
+
+
+    <update id="updateTTaskContent" parameterType="TTaskContent">
+        update t_task_content
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="rwid != null">rwid = #{rwid},</if>
+            <if test="sid != null">sid = #{sid},</if>
+            <if test="source_type != null">source_type = #{source_type},</if>
+            <if test="sort != null">sort = #{sort},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <resultMap type="com.sinosoft.etp.up.task.domain.TTaskCatalog" id="TTaskContentResult1">
+        <id property="id"    column="id"    />
+        <result property="mc"    column="mc"    />
+        <result property="ms"    column="ms"    />
+        <result property="taskBeginTime" column="task_begin_time"/>
+        <result property="taskEndTime" column="task_end_time"/>
+        <result property="updateBy" column="update_by"/>
+        <collection property="sources" resultMap="sources">
+
+        </collection>
+    </resultMap>
+
+
+    <resultMap type="com.sinosoft.etp.up.task.domain.TSource" id="sources">
+        <id column="source_id" property="id"   />
+        <result column="source_name" property="name"  />
+        <result column="source_type" property="type"   />
+        <collection property="sources"  ofType="com.sinosoft.etp.up.task.domain.TSource">
+            <id column="source2_id" property="id"   />
+            <result column="source2_name" property="name"  />
+            <result column="source2_type" property="type"   />
+            <result property="rate" column="rate"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectTTaskContentListByTaskId" resultMap="TTaskContentResult1">
+        SELECT
+            tc.rwid as id,
+            t.task_begin_time,
+            t.task_end_time,
+            t.ms,
+            t.update_by,
+            t.mc as mc,
+            tc.sid as source_id ,
+            CASE
+                WHEN tc.source_type = 'kc' THEN c.mc
+                WHEN tc.source_type = 'ks' THEN e.mc
+            END source_name,
+            tc.source_type,
+            cc.sid as source2_id,
+            CASE
+                WHEN cc.source_type = 'kj' THEN kj.mc
+                WHEN cc.source_type = 'st' THEN st.tg
+            END source2_name,
+            CASE
+                WHEN cc.source_type = 'kj' THEN tcs.jd->'$.rate'
+                WHEN cc.source_type = 'st' THEN 0
+                END rate,
+            cc.source_type as source2_type
+
+        FROM
+            ( SELECT id, rwid,sid, source_type, sort FROM t_task_content WHERE rwid = #{id} ) tc
+            LEFT JOIN t_task t on  tc.rwid =t.id
+            LEFT JOIN t_curriculum c ON tc.sid = c.id and tc.source_type='kc'
+            LEFT JOIN t_examination e ON tc.sid = e.id and tc.source_type='ks'
+
+            LEFT JOIN t_curriculum_content cc on c.id=cc.cid
+            LEFT JOIN t_courseware kj on kj.id=cc.sid and cc.source_type='kj'
+            left join t_courseware_student tcs on tcs.kjid = kj.id
+            LEFT JOIN t_subject st on st.id=cc.sid and cc.source_type='st'
+
+        WHERE
+            ( c.del_flag = '0' OR e.del_flag = '0' )
+        ORDER BY
+            tc.sort,cc.sort
+    </select>
+
+</mapper>

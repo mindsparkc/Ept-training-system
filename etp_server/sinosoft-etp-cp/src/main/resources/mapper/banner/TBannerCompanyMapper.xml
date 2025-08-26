@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.banner.mapper.TBannerCompanyWithCpMapper">
+
+    <resultMap type="TBannerCompanyWithCp" id="TBannerCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="bid"    column="bid"    />
+        <!--result property="qyid"    column="qyid"    /-->
+    </resultMap>
+
+    <sql id="selectTBannerCompanyVo">
+        select id, bid from t_banner_company
+    </sql>
+
+    <select id="selectTBannerCompanyList" parameterType="TBannerCompanyWithCp" resultMap="TBannerCompanyResult">
+        <include refid="selectTBannerCompanyVo"/>
+        <where>
+            <if test="bid != null "> and bid = #{bid}</if>
+            <!-- if test="qyid != null "> and qyid = #{qyid}</if -->
+        </where>
+    </select>
+
+    <select id="selectTBannerCompanyById" parameterType="Long" resultMap="TBannerCompanyResult">
+        <include refid="selectTBannerCompanyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTBannerCompany" parameterType="TBannerCompanyWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_banner_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="bid != null">bid,</if>
+            <!-- if test="qyid != null">qyid,</if -->
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="bid != null">#{bid},</if>
+            <!-- if test="qyid != null">#{qyid},</if -->
+        </trim>
+    </insert>
+
+    <update id="updateTBannerCompany" parameterType="TBannerCompanyWithCp">
+        update t_banner_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="bid != null">bid = #{bid},</if>
+            <!-- if test="qyid != null">qyid = #{qyid},</if -->
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTBannerCompanyById" parameterType="Long">
+        delete from t_banner_company where id = #{id}
+    </delete>
+
+    <delete id="deleteTBannerCompanyByIds" parameterType="String">
+        delete from t_banner_company where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

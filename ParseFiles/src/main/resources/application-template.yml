@@ -1,0 +1,29 @@
+basic:
+  # profile: D:/ruoyi/uploadPath
+  profile: /home/projects/etp/etp_server/uploadPath
+
+spring:
+  datasource:
+    url: jdbc:mysql://<IP>:<PORT>/<数据库>?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&useJDBCCompliantTimezoneShift=true&serverTimezone=UTC
+    username: <数据库账户>
+    password: <数据库密码>
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+  redis:
+    host: 10.153.3.13
+    port: 6379
+    password: Zkr@123
+    database: 2
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: 100ms
+
+mybatis:
+  mapper-locations: classpath:mybatis/mapper/*.xml
+  type-aliases-package: com.sinosoft.entity
+  configuration:
+    map-underscore-to-camel-case: true
+

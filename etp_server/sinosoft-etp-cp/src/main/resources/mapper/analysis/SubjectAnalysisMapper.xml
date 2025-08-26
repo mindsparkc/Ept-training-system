@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.analysis.mapper.SubjectAnalysisWithCpMapper">
+
+
+    <resultMap type="TCurriculumWithCp" id="TCurriculumResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fmt" column="fmt"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+    </resultMap>
+
+    <resultMap type="TTestpaperWithCp" id="TTestpaperResult">
+        <result property="id"    column="id"    />
+        <result property="sjmc"    column="sjmc"    />
+        <result property="zjcl"    column="zjcl"    />
+        <result property="fm"    column="fm"    />
+        <result property="fb"    column="fb"    />
+        <result property="tx"    column="tx"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+    </resultMap>
+
+    <select id="courseAnalysisData" resultType="tCurriculumWithCp" resultMap="TCurriculumResult">
+        SELECT
+            t.id,t.mc,t.ms,t.fmt,t.kfcd,t.states,t.del_flag,t.create_by,
+               t.create_time,t.update_by,t.update_time,t.remark
+        FROM
+            t_curriculum t
+        WHERE
+            t.id IN ( SELECT cid FROM t_curriculum_content tc WHERE sid = #{ sid } AND source_type = 'st' )
+            and t.del_flag = '0'
+    </select>
+
+
+    <select id="examsAnalysisData" resultType="tTestpaper" resultMap="TTestpaperResult">
+        SELECT
+            s.id, s.sjmc, s.zjcl, s.fm, s.fb, s.tx, s.del_flag, s.create_by,
+            s.create_time, s.update_by, s.update_time, s.remark
+        FROM
+            t_testpaper s
+        WHERE
+                s.id IN ( SELECT DISTINCT sjid FROM t_testpaper_subject ts WHERE ts.tkid = #{ sid })
+        and s.del_flag = '0'
+    </select>
+
+
+</mapper>

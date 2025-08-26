@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.testparperresource.mapper.TTestparperResourceWithCpMapper">
+
+    <resultMap type="TTestparperResourceWithCp" id="TTestparperResourceResult">
+        <result property="id"    column="id"    />
+        <result property="sjmc"    column="sjmc"    />
+        <result property="zjcl"    column="zjcl"    />
+        <result property="fm"    column="fm"    />
+        <result property="tx"    column="tx"    />
+        <result property="sjly"    column="sjly"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTTestparperResourceVo">
+        select id, sjmc, zjcl, fm, tx,sjly, del_flag, create_by, create_time, update_by, update_time from t_testparperresource
+    </sql>
+
+    <select id="selectTTestparperResourceList" parameterType="TTestparperResourceWithCp" resultMap="TTestparperResourceResult">
+        <include refid="selectTTestparperResourceVo"/>
+        <where>
+            <if test="sjmc != null  and sjmc != ''">and sjmc like concat('%', #{sjmc}, '%')</if>
+            <if test="zjcl != null  and zjcl != ''"> and zjcl = #{zjcl}</if>
+            <if test="fm != null  and fm != ''"> and fm = #{fm}</if>
+            <if test="tx != null  and tx != ''"> and tx = #{tx}</if>
+        </where>
+    </select>
+
+    <select id="selectTTestparperResourceById" parameterType="Long" resultMap="TTestparperResourceResult">
+        <include refid="selectTTestparperResourceVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTTestparperResource" parameterType="TTestparperResourceWithCp">
+        insert into t_testparperresource
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="sjmc != null">sjmc,</if>
+            <if test="zjcl != null">zjcl,</if>
+            <if test="fm != null">fm,</if>
+            <if test="tx != null">tx,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="sjmc != null">#{sjmc},</if>
+            <if test="zjcl != null">#{zjcl},</if>
+            <if test="fm != null">#{fm},</if>
+            <if test="tx != null">#{tx},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTTestparperResource" parameterType="TTestparperResourceWithCp">
+        update t_testparperresource
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sjmc != null">sjmc = #{sjmc},</if>
+            <if test="zjcl != null">zjcl = #{zjcl},</if>
+            <if test="fm != null">fm = #{fm},</if>
+            <if test="tx != null">tx = #{tx},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTTestparperResourceById" parameterType="Long">
+        delete from t_testparperresource where id = #{id}
+    </delete>
+
+    <delete id="deleteTTestparperResourceByIds" parameterType="String">
+        delete from t_testparperresource where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

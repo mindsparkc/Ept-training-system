@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.curriculum.mapper.TCurriculumWithCpMapper">
+
+    <resultMap type="TCurriculumWithCp" id="TCurriculumResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fmt" column="fmt"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="categoryId" column="categoryId"/>
+        <result property="categoryName" column="categoryName"/>
+        <result property="sftj" column="sftj"/>
+    </resultMap>
+
+    <sql id="selectTCurriculumVo">
+        SELECT  t.id,
+               t.mc,
+               t.ms,
+               t.fmt,
+               t.kfcd,
+               t.states,
+               t.del_flag,
+               t.create_by,
+               t.create_time,
+               t.update_by,
+               t.update_time,
+               t.remark,
+               t.categoryId,
+               t.sftj,
+               /*tg.name as categoryName,*/
+               GROUP_CONCAT(DISTINCT cat.name SEPARATOR ',') categoryName,
+               GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        FROM t_curriculum t
+        <!-- LEFT JOIN t_curriculum_company tc ON t.id = tc.cid
+        LEFT JOIN sys_dept d ON d.dept_id = tc.qyid -->
+        LEFT JOIN t_curriculum_tag st ON t.id = st.kcid
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+        <!--left join t_category tg on tg.id = t.categoryId
+        fix:类别bug-->
+        LEFT JOIN curriculum_inter_category tc on tc.obj_id = t.id
+        LEFT JOIN curriculum_category cat on cat.cat_id = tc.cat_id
+    </sql>
+
+    <select id="selectTCurriculumList" parameterType="TCurriculumWithCp" resultMap="TCurriculumResult">
+        <include refid="selectTCurriculumVo"/>
+        <where>
+            <if test="mc != null  and mc != ''">AND t.mc LIKE concat('%', #{mc}, '%')</if>
+            <if test="states != null  and states != ''">AND t.states =#{states}</if>
+            <if test="tags != null  and tags != ''">
+                AND t.id IN (
+                SELECT
+                st.kcid
+                FROM
+                t_curriculum_tag st
+                WHERE
+                st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.kcid
+                <!--HAVING
+                count( st.kcid ) = #{params.tagsCount}-->
+                )
+            </if>
+            <if test="ms != null  and ms != ''">AND t.ms LIKE concat('%', #{ms}, '%')</if>
+            <if test="fmt != null  and fmt != ''">AND t.fmt = #{fmt}</if>
+            <if test="kfcd != null  and kfcd != ''">AND t.kfcd = #{kfcd}</if>
+            AND t.del_flag = '0'
+<!--            <if test="categoryId != null and categoryId != 1">-->
+<!--                AND (t.categoryId = #{categoryId} OR-->
+<!--                t.categoryId IN ( SELECT cy.id FROM t_category cy WHERE find_in_set(#{categoryId}, ancestors) ))-->
+<!--            </if>-->
+            <!-- 如果有分类，判断是否位于分类内 -->
+            <if test="categoryId != null  and categoryId!='' and categoryId != '0' and categoryId != '-1'"> and t.id in (
+                select qic.obj_id from curriculum_inter_category qic, curriculum_category qc
+                where qic.cat_id = qc.cat_id and (qic.cat_id = #{categoryId} or find_in_set(#{categoryId}, qc.ancestors))
+                )
+            </if>
+            <!-- 未分类 -->
+            <if test="categoryId == '-1'">
+                and not exists(select 1 from curriculum_inter_category qic where t.id = qic.obj_id)
+            </if>
+            <!-- 数据权限控制 -->
+            <!--
+           <if test="params.dataScope != null and params.dataScope != ''">${params.dataScope}</if>
+            -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY t.id
+        ORDER BY t.update_time DESC,t.create_time DESC
+    </select>
+
+    <select id="selectTCurriculumById" parameterType="Long" resultMap="TCurriculumResult">
+        <include refid="selectTCurriculumVo"/>
+        WHERE t.id = #{id} AND t.del_flag ="0"
+    </select>
+
+    <insert id="insertTCurriculum" parameterType="TCurriculumWithCp" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO t_curriculum
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mc != null">mc,</if>
+            <if test="ms != null">ms,</if>
+            <if test="fmt != null">fmt,</if>
+            <if test="kfcd != null">kfcd,</if>
+            <if test="states != null">states,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="categoryId != null">categoryId,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mc != null">#{mc},</if>
+            <if test="ms != null">#{ms},</if>
+            <if test="fmt != null">#{fmt},</if>
+            <if test="kfcd != null">#{kfcd},</if>
+            <if test="states != null">#{states},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTCurriculum" parameterType="TCurriculumWithCp">
+        UPDATE t_curriculum
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mc != null">mc = #{mc},</if>
+            <if test="ms != null">ms = #{ms},</if>
+            <if test="fmt != null">fmt = #{fmt},</if>
+            <if test="kfcd != null">kfcd = #{kfcd},</if>
+            <if test="states != null">states = #{states},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="categoryId != null">categoryId = #{categoryId},</if>
+            <if test="sftj != null">sftj = #{sftj},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+    <update id="updateTCurriculumTjzt" parameterType="TCurriculumWithCp">
+        UPDATE t_curriculum
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sftj != null">sftj = #{sftj},</if>
+        </trim>
+        WHERE id = #{id}
+    </update>
+    <delete id="deleteTCurriculumById" parameterType="Long">
+        UPDATE t_curriculum
+        SET del_flag = '1'
+        WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteTCurriculumByIds" parameterType="String">
+        UPDATE t_curriculum  SET del_flag = '1' WHERE id IN
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <update id="pushBack">
+        UPDATE t_curriculum SET states = '0' WHERE id = #{id}
+    </update>
+
+    <update id="push">
+        UPDATE t_curriculum SET states = '99' WHERE id = #{id}
+    </update>
+
+    <!--校验是否有同名的课程-->
+    <select id="checkExistKC" resultMap="TCurriculumResult">
+        select t.id,t.mc
+        from
+        t_curriculum t
+        <!-- LEFT JOIN t_curriculum_company tc ON t.id = tc.cid -->
+        <where>
+            t.mc = #{mc} and t.del_flag = '0'
+            <!-- and tc.qyid = #{qyid} -->
+        </where>
+        limit 1
+    </select>
+
+    <!--    课程总计学习时长-->
+    <select id="getKcLearnTime" parameterType="Long" resultType="integer">
+        select IFNULL(sum(IFNULL(ts.history_study_time,0)), 0) allTime
+        from t_courseware_student ts
+        where ts.kjid in (
+            select ct.sid from t_curriculum_content ct
+            where ct.cid =#{kcid}  and ct.source_type='kj')
+    </select>
+
+    <select id="getKcListByKjTime" parameterType="Long" resultType="Map">
+        select
+            t.id,t.mc ,sum(IFNULL(ts.history_study_time,0)) as studyTime
+        from
+            t_courseware t
+        join  t_courseware_student ts on t.id = ts.kjid
+        where ts.kjid in (
+            select ct.sid from t_curriculum_content ct
+            where ct.cid =#{kcid} and ct.source_type='kj')
+        group by t.id
+        order by studyTime desc
+    </select>
+
+    <select id="getEveKcLearnTime" resultType="map">
+        select t.id,t.mc,sum(IFNULL(ts.history_study_time,0)) alltime
+        from
+            t_curriculum t
+                join t_curriculum_content tc on t.id = tc.cid
+                left join t_courseware_student ts on tc.sid = ts.kjid and tc.source_type='kj'
+        group by tc.cid
+        order by alltime desc
+    </select>
+</mapper>

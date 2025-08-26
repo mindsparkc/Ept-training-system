@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.index.mapper.IndexWithCpMapper">
+
+
+    <select id="getCourseTotal" resultType="hashmap">
+        select count(0) as total from t_courseware t where t.del_flag = '0'
+<!--        SELECT count(0) as total FROM-->
+<!--        (SELECT t.id, t.mc, t.ms, t.fm, t.xs, t.lj, t.nr, t.kjdz, t.kfcd, t.kjwjmc, t.learn_time,-->
+<!--        t.del_flag, t.create_by, t.create_time, t.update_by, t.update_time, t.remark,-->
+<!--        GROUP_CONCAT(tt.name SEPARATOR ',') tags-->
+<!--        FROM t_courseware t-->
+<!--        &lt;!&ndash; LEFT JOIN t_courseware_company tc ON t.id = tc.kjid-->
+<!--        LEFT JOIN sys_dept d ON d.dept_id = tc.qyid &ndash;&gt;-->
+<!--        LEFT JOIN t_courseware_tag st ON t.id = st.kjid-->
+<!--        LEFT JOIN t_tag tt ON st.bqid = tt.id-->
+<!--        WHERE t.del_flag = '0' GROUP BY t.id) table_count-->
+    </select>
+
+    <select id="getCurriculumTotal" resultType="hashmap">
+        SELECT count(0) as total FROM t_curriculum t WHERE t.del_flag = '0'
+<!--        (SELECT t.id, t.mc, t.ms, t.fmt, t.kfcd, t.states, t.del_flag, t.create_by, t.create_time,-->
+<!--        t.update_by, t.update_time, t.remark, GROUP_CONCAT(tt.name SEPARATOR ',') tags-->
+<!--        FROM t_curriculum t-->
+<!--        &lt;!&ndash; LEFT JOIN t_curriculum_company tc ON t.id = tc.cid-->
+<!--        LEFT JOIN sys_dept d ON d.dept_id = tc.qyid &ndash;&gt;-->
+<!--        LEFT JOIN t_curriculum_tag st ON t.id = st.kcid-->
+<!--        LEFT JOIN t_tag tt ON st.bqid = tt.id-->
+<!--        WHERE t.del_flag = '0' GROUP BY t.id) table_count-->
+
+    </select>
+
+    <select id="getSubjectTotal"  resultType="hashmap">
+        SELECT count(0) as total FROM t_subject s WHERE s.del_flag = '0'
+<!--        (SELECT s.id, s.tg, s.lx, s.xx, s.da, s.jx, s.sflx, s.sfks, s.del_flag, s.create_by, s.create_time,-->
+<!--        s.update_by, s.update_time, s.remark, GROUP_CONCAT(tt.name SEPARATOR ',') tags-->
+<!--        FROM t_subject s-->
+<!--        &lt;!&ndash; LEFT JOIN t_subject_company c ON s.id = c.tkid-->
+<!--        LEFT JOIN sys_dept d ON c.qyid = d.dept_id &ndash;&gt;-->
+<!--        LEFT JOIN t_subject_tag st ON s.id = st.tkid-->
+<!--        LEFT JOIN t_tag tt ON st.bqid = tt.id-->
+<!--        WHERE s.del_flag = '0' AND st.del_flag = '0' GROUP BY s.id) table_count-->
+
+    </select>
+
+    <select id="getPaperTotal" resultType="hashmap">
+        SELECT count(0) as total FROM t_testpaper s WHERE s.del_flag = '0'
+<!--        (SELECT s.id, s.sjmc, s.zjcl, s.fm, s.fb, s.tx, s.del_flag, s.create_by, s.create_time,-->
+<!--        s.update_by, s.update_time, s.remark, GROUP_CONCAT(tt.name SEPARATOR ',') tags-->
+<!--        FROM t_testpaper s-->
+<!--        &lt;!&ndash; LEFT JOIN t_testpaper_company c ON s.id = c.sjid-->
+<!--        LEFT JOIN sys_dept d ON c.qyid = d.dept_id &ndash;&gt;-->
+<!--        LEFT JOIN t_testpaper_tag st ON s.id = st.sjid-->
+<!--        LEFT JOIN t_tag tt ON st.bqid = tt.id-->
+<!--        WHERE s.del_flag = '0' GROUP BY s.id) table_count-->
+
+    </select>
+
+    <select id="getCurrentCourse" resultType="tCurriculumWithCp">
+        SELECT
+            a.id,
+            a.mc,
+            sum(a.num) as regNum,
+            a.ms,
+            a.fmt,
+            a.kfcd,
+            a.states,
+            a.delFlag,
+            a.createBy,
+            a.createTime,
+            a.updateBy,
+            a.updateTime,
+            a.remark
+        from
+            (
+                SELECT
+                    t.id,
+                    ts.kcid,
+                    IF
+                        ( ISNULL( ts.kcid ), '0', '1' ) AS num,
+                    t.mc,
+                    t.ms,
+                    t.fmt,
+                    t.kfcd,
+                    t.states,
+                    t.del_flag AS delFlag,
+                    t.create_by AS createBy,
+                    t.create_time AS createTime,
+                    t.update_by AS updateBy,
+                    t.update_time AS updateTime,
+                    t.remark
+                FROM
+                    t_curriculum t
+                        LEFT JOIN t_curriculum_student ts ON t.id = ts.kcid
+                WHERE
+                    t.del_flag = '0' and t.states = '99'
+            ) a
+        group by a.id
+        ORDER  BY regNum DESC
+            LIMIT 10
+    </select>
+
+    <select id="getCurrentCourseware" resultType="tCoursewareWithCp">
+        SELECT
+            a.id,
+            a.mc,
+            sum( a.num ) AS downNum,
+            a.ms,
+            a.fm,
+            a.xs,
+            a.lj,
+            a.nr,
+            a.kjdz,
+            a.kfcd,
+            a.kjwjmc,
+            a.learnTime,
+            a.createTime,
+            a.updateTime,
+            a.remark
+        from (
+                 SELECT
+                     t.id,
+                     ts.kjid,
+                     IF
+                         ( ISNULL( ts.kjid ), '0', '1' ) AS num,
+                     t.mc,
+                     t.ms,
+                     t.fm,
+                     t.xs,
+                     t.lj,
+                     t.nr,
+                     t.kjdz,
+                     t.kfcd,
+                     t.kjwjmc,
+                     t.learn_time AS learnTime,
+                     t.create_time AS createTime,
+                     t.update_time AS updateTime,
+                     t.remark
+                 FROM
+                     t_courseware t
+                         LEFT JOIN t_courseware_student ts ON t.id = ts.kjid
+                 WHERE
+                     t.del_flag = '0'
+             ) a
+        GROUP BY a.id
+        ORDER BY
+            downNum DESC
+            LIMIT 10
+    </select>
+
+    <resultMap type="SysNotice" id="SysNoticeResult">
+        <result property="noticeId"       column="notice_id"       />
+        <result property="noticeTitle"    column="notice_title"    />
+        <result property="noticeType"     column="notice_type"     />
+        <result property="noticeContent"  column="notice_content"  />
+        <result property="status"         column="status"          />
+        <result property="createBy"       column="create_by"       />
+        <result property="createTime"     column="create_time"     />
+        <result property="updateBy"       column="update_by"       />
+        <result property="updateTime"     column="update_time"     />
+        <result property="remark"         column="remark"          />
+    </resultMap>
+
+    <select id="getNotices" resultType="sysNotice" resultMap="SysNoticeResult">
+        select sn.notice_id, sn.notice_title, sn.notice_type,
+        cast(sn.notice_content as char) as notice_content,
+        sn.status, sn.create_by, sn.create_time, sn.update_by, sn.update_time, sn.remark
+        from sys_notice sn
+        <!-- join sys_notice_company snc on sn.notice_id = snc.notice_id -->
+        where  <!-- snc.qyid = #{deptId} and --> sn.del_flag = '0' and sn.status = '0'
+        order by sn.update_time DESC
+        limit 20
+    </select>
+
+    <resultMap type="TOpinionWithCp" id="TOpinionResult">
+        <result property="id"    column="id"    />
+        <result property="yjms"    column="yjms"    />
+        <result property="fj"    column="fj"    />
+        <result property="hf"    column="hf"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="hfStatus"    column="hf_status"    />
+    </resultMap>
+
+    <select id="getOpinions" resultType="TOpinionWithCp" resultMap="TOpinionResult">
+        select o.id, o.yjms, o.fj,o.fjname, o.hf, o.xyid, o.del_flag, o.create_by, o.create_time,
+               o.update_by, o.update_time, o.remark, o.hf_status,u.user_name as xyname
+        from t_opinion o
+                 left join
+             (
+                 SELECT
+                     u.user_id ,
+                     u.user_name
+                 FROM
+                     sys_user u
+                 WHERE
+                         u.dept_id IN
+                         (
+                             SELECT
+                                 dept_id
+                             FROM
+                                 (
+                                     SELECT
+                                         t1.dept_id,
+                                         t1.dept_name,
+                                         IF
+                                             ( find_in_set( parent_id, @pids ) > 0, @pids := concat( @pids, ',', dept_id ), 0 ) AS ischild
+                                     FROM
+                                         ( SELECT dept_id, parent_id, dept_name FROM sys_dept t ORDER BY parent_id, dept_id ) t1,
+                                         ( SELECT @pids := #{deptId} ) t2
+                                 ) t3
+                             WHERE
+                                 ischild != 0
+                            OR dept_id = #{deptId}
+             )
+            AND u.del_flag = '0'
+        ) u on u.user_id = o.xyid
+        where   o.del_flag = '0' and o.hf_status = '0'
+        order by o.update_time DESC
+    </select>
+
+    <select id="getCurrentExaminations" resultType="tExaminationWithCp">
+        SELECT
+        t.id, t.mc, t.ms, t.fm, t.fb,
+        t.kslj, t.kfcd, t.sjid, t.kskssj,
+        t.ksjssj, t.djsc, t.dtcs, t.fsdj,
+        t.zfs, t.remark,
+        t.del_flag as delFlag,
+        t.create_by as createBy,
+        t.create_time as createTime,
+        t.update_by as updateBy,
+        t.update_time as updateTime
+        FROM
+        t_examination t
+        <!-- JOIN t_examination_company tc ON t.id = tc.ksid -->
+        WHERE
+        <!-- tc.qyid = #{deptId} and --> t.del_flag = '0' and t.fb='99'
+        LIMIT 10
+    </select>
+
+</mapper>

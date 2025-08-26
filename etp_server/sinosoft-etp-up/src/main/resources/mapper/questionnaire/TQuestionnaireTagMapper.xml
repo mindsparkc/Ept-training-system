@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.questionnaire.mapper.TQuestionnaireTagMapper">
+    
+    <resultMap type="TQuestionnaireTag" id="TQuestionnaireTagResult">
+        <result property="id"    column="id"    />
+        <result property="wjid"    column="wjid"    />
+        <result property="bqid"    column="bqid"    />
+        <result property="qyid"    column="qyid"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTQuestionnaireTagVo">
+        select id, wjid, bqid, qyid, del_flag, create_by, update_by, create_time, update_time from t_questionnaire_tag
+    </sql>
+
+    <select id="selectTQuestionnaireTagList" parameterType="TQuestionnaireTag" resultMap="TQuestionnaireTagResult">
+        <include refid="selectTQuestionnaireTagVo"/>
+        <where>  
+            <if test="wjid != null "> and wjid = #{wjid}</if>
+            <if test="bqid != null "> and bqid = #{bqid}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+    
+    <select id="selectTQuestionnaireTagById" parameterType="Long" resultMap="TQuestionnaireTagResult">
+        <include refid="selectTQuestionnaireTagVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTQuestionnaireTag" parameterType="TQuestionnaireTag" useGeneratedKeys="true" keyProperty="id">
+        insert into t_questionnaire_tag
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="wjid != null">wjid,</if>
+            <if test="bqid != null">bqid,</if>
+            <if test="qyid != null">qyid,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="wjid != null">#{wjid},</if>
+            <if test="bqid != null">#{bqid},</if>
+            <if test="qyid != null">#{qyid},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTQuestionnaireTag" parameterType="TQuestionnaireTag">
+        update t_questionnaire_tag
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="wjid != null">wjid = #{wjid},</if>
+            <if test="bqid != null">bqid = #{bqid},</if>
+            <if test="qyid != null">qyid = #{qyid},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTQuestionnaireTagById" parameterType="Long">
+        delete from t_questionnaire_tag where id = #{id}
+    </delete>
+
+    <delete id="deleteTQuestionnaireTagByIds" parameterType="String">
+        delete from t_questionnaire_tag where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

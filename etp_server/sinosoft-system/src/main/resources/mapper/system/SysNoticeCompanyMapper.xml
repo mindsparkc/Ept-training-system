@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.system.mapper.SysNoticeCompanyMapper">
+
+    <resultMap type="SysNoticeCompany" id="SysNoticeCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="qyid"    column="qyid"    />
+        <result property="noticeId"    column="notice_id"    />
+    </resultMap>
+
+    <sql id="selectSysNoticeCompanyVo">
+        select id, qyid, notice_id from sys_notice_company
+    </sql>
+
+    <select id="selectSysNoticeCompanyList" parameterType="SysNoticeCompany" resultMap="SysNoticeCompanyResult">
+        <include refid="selectSysNoticeCompanyVo"/>
+        <where>
+        </where>
+    </select>
+
+    <select id="selectSysNoticeCompanyById" parameterType="Long" resultMap="SysNoticeCompanyResult">
+        <include refid="selectSysNoticeCompanyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSysNoticeCompany" parameterType="SysNoticeCompany" useGeneratedKeys="true" keyProperty="id">
+        insert into sys_notice_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="qyid != null">qyid,</if>
+            <if test="noticeId != null">notice_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="qyid != null">#{qyid},</if>
+            <if test="noticeId != null">#{noticeId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateSysNoticeCompany" parameterType="SysNoticeCompany">
+        update sys_notice_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="qyid != null">qyid = #{qyid},</if>
+            <if test="noticeId != null">notice_id = #{noticeId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSysNoticeCompanyByNoticeId" parameterType="Long">
+        delete from sys_notice_company where notice_id = #{id}
+    </delete>
+
+    <delete id="deleteSysNoticeCompanyByNoticeIds" parameterType="String">
+        delete from sys_notice_company where notice_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

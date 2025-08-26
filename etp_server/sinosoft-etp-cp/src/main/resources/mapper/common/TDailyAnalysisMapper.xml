@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.common.mapper.TDailyAnalysisWithCpMapper">
+
+    <resultMap type="TDailyAnalysisWithCp" id="TDailyAnalysisResult">
+        <result property="id"                               column="id"    />
+        <result property="userId"                           column="user_id"    />
+        <result property="kjid"                             column="kjid"    />
+        <result property="kcid"                             column="kcid"    />
+        <result property="rwid"                             column="rwid"    />
+        <result property="dailyCoursewareClicks"            column="daily_courseware_clicks"    />
+        <result property="dailyCurriculumClicks"            column="daily_curriculum_clicks"    />
+        <result property="dailyTaskClicks"                  column="daily_task_clicks"    />
+        <result property="dailyUserLogin"                   column="daily_user_login"    />
+        <result property="dailyVideoStudyTime"              column="daily_video_study_time"    />
+        <result property="dailyRichtextStudyTime"           column="daily_richtext_study_time"    />
+        <result property="dailyFileStudyTime"               column="daily_file_study_time"    />
+        <result property="dailyUserStudyTime"               column="daily_user_study_time"    />
+        <result property="delFlag"                          column="del_flag"    />
+        <result property="createTime"                       column="create_time"    />
+        <result property="updateTime"                       column="update_time"    />
+        <result property="specificDate"                     column="specific_date"    />
+    </resultMap>
+
+    <sql id="selectTDailyAnalysisVo">
+        select id, user_id, kjid, kcid, rwid, daily_courseware_clicks, daily_curriculum_clicks, daily_task_clicks, daily_user_login, daily_video_study_time, daily_richtext_study_time, daily_file_study_time, daily_user_study_time, del_flag, create_time, update_time, specific_date from t_daily_analysis
+    </sql>
+
+    <select id="selectTDailyAnalysisList" parameterType="TDailyAnalysisWithCp" resultMap="TDailyAnalysisResult">
+        <include refid="selectTDailyAnalysisVo"/>
+        <where>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            <if test="kjid != null "> and kjid = #{kjid}</if>
+            <if test="kcid != null "> and kcid = #{kcid}</if>
+            <if test="rwid != null "> and rwid = #{rwid}</if>
+            <if test="dailyCoursewareClicks != null "> and daily_courseware_clicks = #{dailyCoursewareClicks}</if>
+            <if test="dailyCurriculumClicks != null "> and daily_curriculum_clicks = #{dailyCurriculumClicks}</if>
+            <if test="dailyTaskClicks != null "> and daily_task_clicks = #{dailyTaskClicks}</if>
+            <if test="dailyUserLogin != null "> and daily_user_login = #{dailyUserLogin}</if>
+            <if test="dailyVideoStudyTime != null  and dailyVideoStudyTime != ''"> and daily_video_study_time = #{dailyVideoStudyTime}</if>
+            <if test="dailyRichtextStudyTime != null  and dailyRichtextStudyTime != ''"> and daily_richtext_study_time = #{dailyRichtextStudyTime}</if>
+            <if test="dailyFileStudyTime != null  and dailyFileStudyTime != ''"> and daily_file_study_time = #{dailyFileStudyTime}</if>
+            <if test="dailyUserStudyTime != null  and dailyUserStudyTime != ''"> and daily_user_study_time = #{dailyUserStudyTime}</if>
+            <if test="specificDate != null  and specificDate != ''"> and specific_date = #{specificDate}</if>
+        </where>
+    </select>
+
+    <select id="selectTDailyAnalysisById" parameterType="Long" resultMap="TDailyAnalysisResult">
+        <include refid="selectTDailyAnalysisVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectWeekByKj" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select kjid,sum(daily_courseware_clicks) as dailyCoursewareClicks from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime} and kjid is not null
+        group by kjid
+    </select>
+    <select id="selectWeekByKc" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select kcid,sum(daily_curriculum_clicks) as dailyCurriculumClicks from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime} and kcid is not null
+        group by kcid
+    </select>
+    <select id="selectWeekByRw" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select rwid,sum(daily_task_clicks) as dailyTaskClicks from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime} and rwid is not null
+        group by rwid
+    </select>
+    <select id="selectWeekByStudy" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select user_id,sum(daily_user_study_time) as dailyUserStudyTime from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime} and user_id is not null
+        group by user_id;
+    </select>
+
+    <select id="selectWeekByVideo" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select user_id,kjid,sum(daily_video_study_time) as dailyUserStudyTime from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime} and user_id is not null
+        group by user_id;
+    </select>
+
+    <select id="selectWeekByText" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select user_id,sum(daily_richtext_study_time) as dailyUserStudyTime from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime}
+        group by user_id;
+    </select>
+
+    <select id="selectWeekByFile" parameterType="map" resultType="com.sinosoft.etp.cp.common.domain.TDailyAnalysisWithCp">
+        select user_id,sum(daily_file_study_time) as dailyUserStudyTime from t_daily_analysis t
+        where t.create_time between #{fristTime} and #{lastTime}
+        group by user_id;
+    </select>
+
+
+    <insert id="insertTDailyAnalysis" parameterType="TDailyAnalysisWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_daily_analysis
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="kjid != null">kjid,</if>
+            <if test="kcid != null">kcid,</if>
+            <if test="rwid != null">rwid,</if>
+            <if test="dailyCoursewareClicks != null">daily_courseware_clicks,</if>
+            <if test="dailyCurriculumClicks != null">daily_curriculum_clicks,</if>
+            <if test="dailyTaskClicks != null">daily_task_clicks,</if>
+            <if test="dailyUserLogin != null">daily_user_login,</if>
+            <if test="dailyVideoStudyTime != null">daily_video_study_time,</if>
+            <if test="dailyRichtextStudyTime != null">daily_richtext_study_time,</if>
+            <if test="dailyFileStudyTime != null">daily_file_study_time,</if>
+            <if test="dailyUserStudyTime != null">daily_user_study_time,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="specificDate != null">specific_date,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="kjid != null">#{kjid},</if>
+            <if test="kcid != null">#{kcid},</if>
+            <if test="rwid != null">#{rwid},</if>
+            <if test="dailyCoursewareClicks != null">#{dailyCoursewareClicks},</if>
+            <if test="dailyCurriculumClicks != null">#{dailyCurriculumClicks},</if>
+            <if test="dailyTaskClicks != null">#{dailyTaskClicks},</if>
+            <if test="dailyUserLogin != null">#{dailyUserLogin},</if>
+            <if test="dailyVideoStudyTime != null">#{dailyVideoStudyTime},</if>
+            <if test="dailyRichtextStudyTime != null">#{dailyRichtextStudyTime},</if>
+            <if test="dailyFileStudyTime != null">#{dailyFileStudyTime},</if>
+            <if test="dailyUserStudyTime != null">#{dailyUserStudyTime},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="specificDate != null">#{specificDate},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTDailyAnalysis" parameterType="TDailyAnalysisWithCp">
+        update t_daily_analysis
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="kjid != null">kjid = #{kjid},</if>
+            <if test="kcid != null">kcid = #{kcid},</if>
+            <if test="rwid != null">rwid = #{rwid},</if>
+            <if test="dailyCoursewareClicks != null">daily_courseware_clicks = #{dailyCoursewareClicks},</if>
+            <if test="dailyCurriculumClicks != null">daily_curriculum_clicks = #{dailyCurriculumClicks},</if>
+            <if test="dailyTaskClicks != null">daily_task_clicks = #{dailyTaskClicks},</if>
+            <if test="dailyUserLogin != null">daily_user_login = #{dailyUserLogin},</if>
+            <if test="dailyVideoStudyTime != null">daily_video_study_time = #{dailyVideoStudyTime},</if>
+            <if test="dailyRichtextStudyTime != null">daily_richtext_study_time = #{dailyRichtextStudyTime},</if>
+            <if test="dailyFileStudyTime != null">daily_file_study_time = #{dailyFileStudyTime},</if>
+            <if test="dailyUserStudyTime != null">daily_user_study_time = #{dailyUserStudyTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="specificDate != null">specific_date = #{specificDate},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTDailyAnalysisById" parameterType="Long">
+        delete from t_daily_analysis where id = #{id}
+    </delete>
+
+    <delete id="deleteTDailyAnalysisByIds" parameterType="String">
+        delete from t_daily_analysis where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

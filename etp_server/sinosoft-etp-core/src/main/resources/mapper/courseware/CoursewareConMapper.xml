@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.common.courseware.mapper.CoursewareConMapper">
+
+    <select id="getStudyDuration" resultType="Map">
+        select t.id,
+               t.learn_time as "learnTime",
+               IFNULL(s.history_study_time,0) as "historyStudyTime",
+               IFNULL(s.jd->'$.rate',0) as 'jd'
+        FROM t_courseware t
+        inner join t_courseware_student s on t.id = s.kjid
+        where t.id=#{id} and s.xyid = #{xyid} and t.del_flag = '0'
+    </select>
+
+    <update id="updateRate">
+        update t_courseware_student set jd=JSON_SET(jd, '$.rate', 100)
+        where kjid=#{kjid} and xyid = #{xyid}
+    </update>
+</mapper>

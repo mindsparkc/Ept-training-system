@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.knowledge.mapper.KnowledgeMapper">
+
+    <resultMap type="Knowledge" id="KnowledgeResult">
+        <result property="knoledgeId"    column="knoledge_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="content"    column="content"    />
+        <result property="contentDisplay"    column="content_display"    />
+        <result property="catId"    column="cat_id"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectKnowledgeVo">
+        select k.knoledge_id, k.parent_id, k.content, k.content_display, k.cat_id, k.user_id, k.dept_id,
+               k.del_flag, k.create_by, k.create_time, k.update_by, k.update_time, k.remark from knowledge k
+    </sql>
+
+    <select id="selectKnowledgeList" parameterType="Knowledge" resultMap="KnowledgeResult">
+        <include refid="selectKnowledgeVo"/>
+        <where>
+            (k.del_flag = "0" or k.del_flag is null)
+            <if test="content != null "> and k.content like concat('%', #{content}, '%') </if>
+           <!-- <if test="catId != null "> and k.cat_id = #{catId}</if>-->
+            <if test="knoledgeId == null"> and k.parent_id is null </if>
+            <if test="knoledgeId != null"> and k.parent_id = #{knoledgeId} </if>
+            <!-- 如果有分类，判断是否位于分类内 -->
+            <if test="catId != null  and catId != '' and catId != '0'  and catId != '-1'"> and k.knoledge_id in (
+                select qic.obj_id from knowledge_inter_category qic, knowledge_category qc
+                where qic.cat_id = qc.cat_id and (qic.cat_id = #{catId} or find_in_set(#{catId}, qc.ancestors))
+                )
+            </if>
+            <!-- 未分类 -->
+            <if test="catId == '-1'">
+                and not exists(select 1 from knowledge_inter_category qic where k.knoledge_id = qic.obj_id)
+            </if>
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+    </select>
+
+    <select id="selectKnowledgeByIds" parameterType="String" resultMap="KnowledgeResult">
+        <include refid="selectKnowledgeVo"/>
+        where k.knoledge_id in
+        <foreach item="knoledgeId" collection="array" open="(" separator="," close=")">
+            #{knoledgeId}
+        </foreach>
+        and (k.del_flag = "0" or k.del_flag is null)
+    </select>
+
+    <select id="selectKnowledgeById" parameterType="Long" resultMap="KnowledgeResult">
+        <include refid="selectKnowledgeVo"/>
+        where k.knoledge_id = #{knoledgeId} and (k.del_flag = "0" or k.del_flag is null)
+    </select>
+    <select id="selectChildById" resultType="Integer">
+        select count(1) from knowledge where parent_id = #{knoledgeId} and del_flag = "0"
+    </select>
+    <select id="getChildList" parameterType="Long" resultMap="KnowledgeResult">
+        <include refid="selectKnowledgeVo"/>
+        where k.parent_id = #{parentId} and (k.del_flag = "0" or k.del_flag is null)
+    </select>
+
+    <insert id="insertKnowledge" parameterType="Knowledge">
+        insert into knowledge
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="knoledgeId != null">knoledge_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="content != null">content,</if>
+            <if test="contentDisplay != null">content_display,</if>
+            <if test="catId != null">cat_id,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="knoledgeId != null">#{knoledgeId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="content != null">#{content},</if>
+            <if test="contentDisplay != null">#{contentDisplay},</if>
+            <if test="catId != null">#{catId},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateKnowledge" parameterType="Knowledge">
+        update knowledge
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="content != null">content = #{content},</if>
+            <if test="contentDisplay != null">content_display = #{contentDisplay},</if>
+            <if test="catId != null">cat_id = #{catId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where knoledge_id = #{knoledgeId}
+    </update>
+
+    <delete id="deleteKnowledgeById" parameterType="Long">
+        <!-- delete from knowledge where knoledge_id = #{knoledgeId} -->
+        update knowledge set del_flag = "2" where knoledge_id = #{knoledgeId}
+    </delete>
+
+    <delete id="deleteKnowledgeByIds" parameterType="String">
+        <!-- delete from knowledge where knoledge_id in
+        <foreach item="knoledgeId" collection="array" open="(" separator="," close=")">
+            #{knoledgeId}
+        </foreach> -->
+        update knowledge set del_Flag = "2" where knoledge_id in
+        <foreach item="knoledgeId" collection="array" open="(" separator="," close=")">
+            #{knoledgeId}
+        </foreach>
+    </delete>
+</mapper>

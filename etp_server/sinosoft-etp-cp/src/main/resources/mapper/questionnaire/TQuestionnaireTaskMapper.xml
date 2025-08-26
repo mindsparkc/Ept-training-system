@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.questionnaire.mapper.TQuestionnaireTaskMapper">
+    <resultMap type="QuestionnaireTask" id="questionnaireTaskResult">
+        <result property="id"           column="id"      />
+        <result property="wjid"         column="wjid"      />
+        <result property="tmid"         column="tmid"      />
+        <result property="type"         column="type"      />
+        <result property="tg"           column="tg"      />
+        <result property="option"       column="option"    />
+        <result property="optionName"   column="option_name"    />
+        <result property="wdda"         column="wdda"        />
+        <result property="num"          column="num"  />
+        <result property="updateTime"   column="update_time"          />
+    </resultMap>
+
+
+    <!--    问卷选则题汇总-->
+    <select id="getChoiceSummary" resultType="map">
+        SELECT
+            ts.wjid,
+            t.id AS tmid,
+            t.type,
+            GROUP_CONCAT( t.da ) as da,
+            t.xxList,
+            t.tg
+        FROM
+            t_questionnaire_student ts,
+            JSON_TABLE (
+                    ts.wjnr,
+                    '$[*]' COLUMNS (
+			id VARCHAR ( 64 ) PATH '$.id',
+			da VARCHAR ( 64 ) PATH '$.da',
+			type VARCHAR ( 64 ) PATH '$.type',
+			tg VARCHAR ( 1024 ) PATH '$.tg',
+            xxList JSON PATH '$.xxList'
+		)) t
+        WHERE
+            ts.wjnr IS NOT NULL
+          AND (t.type = '0' or t.type = '1')
+        GROUP BY
+            ts.wjid,
+            tmid,
+            t.type,
+            t.tg,
+            t.xxList
+    </select>
+
+<!--    问答题统计-->
+    <select id="getWdSummany" resultMap="questionnaireTaskResult">
+        SELECT
+            ts.wjid,
+            t.id AS tmid,
+            t.type,
+            t.da as wdda,
+            count(t.da) num,
+            t.tg
+        FROM
+            t_questionnaire_student ts,
+            JSON_TABLE (
+                    ts.wjnr,
+                    '$[*]' COLUMNS (
+			id VARCHAR ( 64 ) PATH '$.id',
+			da text  PATH '$.da',
+			type VARCHAR ( 64 ) PATH '$.type',
+			tg VARCHAR ( 1024 ) PATH '$.tg'
+		)) t
+        WHERE
+            ts.wjnr IS NOT NULL
+          AND t.type = '3'
+        GROUP BY
+            ts.wjid,
+            tmid,
+            t.da,
+            t.type,
+            t.tg
+    </select>
+
+    <insert id="addQuestionnaireSum">
+        INSERT INTO t_questionnaire_sum (
+            wjid,
+            tmid,
+            `type`,
+            tg,
+            `option`,
+            option_name,
+            wdda,
+            num,
+            update_time
+            )
+        VALUES
+        <foreach collection="list" index="index" item="data" separator=","  >
+        (
+          #{data.wjid},
+          #{data.tmid},
+          #{data.type},
+          #{data.tg},
+          #{data.option},
+          #{data.optionName},
+          #{data.wdda},
+          #{data.num},
+          #{data.updateTime}
+        )
+        </foreach>
+    </insert>
+
+<!--    问卷 各个试题分析   -->
+    <select id="getChoseAnalysis" resultMap="questionnaireTaskResult">
+
+        SELECT
+            ts.wjid,
+            ts.tmid,
+            ts.type,
+            ts.option_name,
+            ts.wdda,
+            ts.num
+        FROM
+            t_questionnaire_sum ts
+        <where>
+            ts.wjid = #{wjid}
+            and (ts.type ='0' or ts.type = '1')
+          AND ts.update_time = ( SELECT max( update_time ) FROM t_questionnaire_sum )
+        </where>
+    </select>
+
+    <select id="getWdAnalysis" resultMap="questionnaireTaskResult">
+        SELECT
+        ts.wjid,
+        ts.tmid,
+        ts.type,
+        ts.option_name,
+        ts.wdda,
+        ts.num
+        FROM
+        t_questionnaire_sum ts
+        <where>
+            ts.wjid = #{wjid}
+            and ts.tmid = #{tmid}
+            and ts.type ='3'
+            AND ts.update_time = ( SELECT max( update_time ) FROM t_questionnaire_sum )
+        </where>
+    </select>
+</mapper>

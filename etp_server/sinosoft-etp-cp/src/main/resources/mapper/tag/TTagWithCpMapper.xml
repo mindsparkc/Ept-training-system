@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.tag.mapper.TTagWithCpMapper">
+
+    <resultMap type="TTag" id="TTagResult">
+        <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
+        <result property="source"    column="source"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTTagVo">
+        select id, name, source, del_flag, create_by, create_time, update_by, update_time, remark from t_tag
+    </sql>
+
+    <select id="selectTTagList" parameterType="TTag" resultMap="TTagResult">
+        <include refid="selectTTagVo"/>
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="source != null  and source != ''"> and source = #{source}</if>
+        </where>
+    </select>
+
+    <select id="selectTTagById" parameterType="Long" resultMap="TTagResult">
+        <include refid="selectTTagVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTTag" parameterType="TTag">
+        insert into t_tag
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="name != null">name,</if>
+            <if test="source != null">source,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="name != null">#{name},</if>
+            <if test="source != null">#{source},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTTag" parameterType="TTag">
+        update t_tag
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
+            <if test="source != null">source = #{source},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTTagById" parameterType="Long">
+        delete from t_tag where id = #{id}
+    </delete>
+
+    <delete id="deleteTTagByIds" parameterType="String">
+        delete from t_tag where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+
+    <select id="listRelateTag"  resultMap="TTagResult">
+        select
+        r.bqid id,t.name,count(r.bqid) num
+        from ${tableName} r
+        inner join t_tag t on t.id = r.bqid
+        <where>
+            r.del_flag ='0' <!-- and
+            r.qyid = ${qyid} --> GROUP BY t.id ORDER BY num desc
+        </where>
+    </select>
+
+
+    <insert id="commpanyInsertTag" parameterType="java.util.List">
+        insert ignore into t_tag (name,source,create_by,create_time,update_by,update_time)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.name}, #{item.source}, #{item.createBy}, #{item.createTime},
+            #{item.updateBy}, #{item.updateTime})
+        </foreach>
+    </insert>
+
+    <select id="getTagIdsByName" parameterType="String" resultType="Integer">
+        select id from t_tag where name in
+        <foreach item="name" collection="array" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+    </select>
+
+    <insert id="insertRelateTag"  parameterType="Map">
+        insert into ${map.tableName} (${map.filed},bqid,qyid,create_by,create_time,update_time)
+        values
+        <foreach collection="map.list" item="item" index="key" separator=",">
+            (#{item.modelId}, #{item.bqid},#{item.qyid}, #{item.createBy}, #{item.createTime},
+            #{item.updateTime})
+        </foreach>
+    </insert>
+
+<!--    <update id="deleteRelateTag" parameterType="Long">-->
+<!--        update ${tableName} set del_flag = "1" where ${filed} = ${relateId}-->
+<!--    </update>-->
+    <delete id="deleteRelateTag">
+        delete from ${tableName} where ${filed} = ${relateId}
+    </delete>
+</mapper>

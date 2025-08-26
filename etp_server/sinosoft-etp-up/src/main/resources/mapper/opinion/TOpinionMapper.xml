@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.opinion.mapper.TOpinionMapper">
+
+    <resultMap type="TOpinion" id="TOpinionResult">
+        <result property="id"    column="id"    />
+        <result property="yjms"    column="yjms"    />
+        <result property="fj"    column="fj"    />
+        <result property="fjname"    column="fjname"    />
+        <result property="hf"    column="hf"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="hfStatus"    column="hf_status"    />
+        <result property="hfStatusName"    column="hfStatusName"    />
+    </resultMap>
+
+    <sql id="selectTOpinionVo">
+        select id, yjms, fj,fjname, hf, xyid, del_flag, create_by, create_time,
+               update_by, update_time, remark, hf_status
+        from t_opinion
+    </sql>
+
+    <select id="selectTOpinionList" parameterType="TOpinion" resultMap="TOpinionResult">
+        SELECT
+        id,
+        yjms,
+        fj,
+        hf,
+        xyid,
+        del_flag,
+        create_by,
+        create_time,
+        update_by,
+        update_time,
+        remark,
+        hf_status,
+        CASE WHEN hf_status = '1'
+            THEN '已回复'
+            ELSE '未回复'
+        END hfStatusName
+        FROM
+        t_opinion
+        <where>
+             xyid = #{xyid} and del_flag='0'
+            <if test="yjms != null  and yjms != ''"> and yjms like concat('%', #{yjms}, '%')</if>
+            <if test="hf != null  and hf != ''"> and hf like concat('%', #{hf}, '%')</if>
+            <if test="params.beginCreateTime != null and params.beginCreateTime != '' and params.endCreateTime != null and params.endCreateTime != ''"> and create_time between #{params.beginCreateTime} and #{params.endCreateTime}</if>
+            <if test="remark != null  and remark != ''"> and remark = #{remark}</if>
+            <if test="hfStatus != null  and hfStatus != ''"> and hf_status = #{hfStatus}</if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="selectTOpinionById" parameterType="Long" resultMap="TOpinionResult">
+        <include refid="selectTOpinionVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTOpinion" parameterType="TOpinion" useGeneratedKeys="true" keyProperty="id">
+        insert into t_opinion
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="yjms != null">yjms,</if>
+            <if test="fj != null">fj,</if>
+            <if test="hf != null">hf,</if>
+            <if test="xyid != null">xyid,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="hfStatus != null">hf_status,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="yjms != null">#{yjms},</if>
+            <if test="fj != null">#{fj},</if>
+            <if test="hf != null">#{hf},</if>
+            <if test="xyid != null">#{xyid},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="hfStatus != null">#{hfStatus},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTOpinion" parameterType="TOpinion">
+        update t_opinion
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="yjms != null">yjms = #{yjms},</if>
+            <if test="fj != null">fj = #{fj},</if>
+            <if test="hf != null">hf = #{hf},</if>
+            <if test="xyid != null">xyid = #{xyid},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="hfStatus != null">hf_status = #{hfStatus},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTOpinionById" parameterType="Long">
+        update t_opinion set del_flag='1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTOpinionByIds" parameterType="String">
+        update t_opinion set del_flag='1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
+

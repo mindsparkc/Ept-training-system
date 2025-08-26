@@ -1,0 +1,377 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.curriculum.mapper.TCurriculumMapper">
+
+    <resultMap type="TCurriculum" id="TCurriculumResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fmt" column="fmt"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="kcjd" column="kcjd"/>
+        <result property="jd" column="jd"/>
+        <result property="getStatus" column="getStatus"/>
+        <result property="getStatusLabel" column="getStatusLabel"/>
+        <result property="sftj" column="sftj"/>
+        <result property="categoryId" column="categoryId"/>
+        <result property="order" column="order"/>
+    </resultMap>
+
+    <sql id="selectTCurriculumVo">
+        SELECT  t.id,
+               t.mc,
+               t.ms,
+               t.fmt,
+               t.create_by,
+               t.create_time,
+               t.update_by,
+               t.update_time,
+               t.remark,
+               tcs.jd as kcjd
+        FROM t_curriculum t
+        left join t_curriculum_student tcs
+        on t.id = tcs.kcid
+
+    </sql>
+    <update id="updateStatus" parameterType="map">
+        update t_curriculum_student set jd = #{jd} where xyid = #{xyid} and kcid = #{kcid} and del_flag = '0'
+    </update>
+
+    <select id="selectTCurriculumList" parameterType="TCurriculum" resultMap="TCurriculumResult">
+        select
+            temp.id,temp.mc,
+            temp.ms,temp.fmt,temp.create_by,temp.tags,temp.update_time,temp.update_by,
+        temp.create_time,
+            cs.jd,
+            case
+            when cs.jd->'$.rate' = 100  then  '已完成'
+            when cs.jd->'$.lastStudy.current' is not null  then '进行中'
+            else '未开始'
+            end  kcjd
+            from(
+                SELECT t.id,
+                    t.mc,
+                    t.ms,
+                    t.fmt,
+                    t.update_time,
+                    t.create_time,
+                    t.create_by,
+        t.update_by,
+                    GROUP_CONCAT(tt.name SEPARATOR ',') tags
+                FROM t_curriculum t
+                LEFT JOIN t_curriculum_tag st ON t.id = st.kcid AND st.del_flag = '0' <!-- AND st.qyid = #{qyid} -->
+                LEFT JOIN t_tag tt ON st.bqid = tt.id
+                <where>
+                    <if test="mc != null  and mc != ''">AND t.mc LIKE concat('%', #{mc}, '%')</if>
+                    <if test="ms != null  and ms != ''">AND t.ms LIKE concat('%', #{ms}, '%')</if>
+                    <if test="sftj != null  and sftj != ''">AND t.sftj = #{sftj}</if>
+                    <if test="tags != null  and tags != ''">
+                        And t.id IN (
+                        SELECT
+                        st.kcid
+                        FROM
+                        t_curriculum_tag st
+                        WHERE
+                        st.del_flag = '0' <!-- and st.qyid = #{qyid} -->
+                        AND st.bqid IN
+                        <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                            #{item}
+                        </foreach>
+                        GROUP BY
+                        st.kcid
+                        <!--HAVING
+                        count( st.kcid ) = #{params.tagsCount}-->
+                        )
+                    </if>
+                    AND t.del_flag = '0'  AND  t.states = '99'
+
+                </where>
+                GROUP BY t.id) temp
+        JOIN t_curriculum_student cs on cs.kcid= temp.id
+        AND cs.xyid = #{xyid} AND cs.del_flag='0'
+
+        <if test="jd != null  and jd != '' and jd == '最近学习' ">
+            <!-- 最近学习 -->
+--             and  (cs.jd->'$.rate' != 100 or cs.jd->'$.rate' is null)
+            and (cs.jd->'$.lastStudy.current' is not null)
+        </if>
+        <if test="jd != null  and jd != '' and jd == '未学完' ">
+            <!-- 未学完 -->
+            and  (cs.jd->'$.rate' != 100 or cs.jd->'$.rate' is null)
+        </if>
+        <if test="jd == '100' ">
+            <!-- 已学完 -->
+            --             and  (cs.jd->'$.rate' != 100 or cs.jd->'$.rate' is null)
+            and (cs.jd->'$.rate' = 100)
+        </if>
+        ORDER BY
+            field(kcjd,'进行中','未开始','已完成')
+    </select>
+
+    <select id="selectTCurriculumByGet" parameterType="TCurriculum" resultMap="TCurriculumResult">
+        select
+        temp.id,temp.mc,
+        temp.ms,temp.fmt,temp.create_by,temp.tags,temp.update_time,temp.update_by,
+        temp.create_time,
+        cs.jd,
+        case
+        when cs.jd->'$.rate' = 100  then  '已完成'
+        when cs.jd->'$.lastStudy.current' is not null  then '进行中'
+        else '未开始'
+        end  kcjd
+        from(
+        SELECT t.id,
+        t.mc,
+        t.ms,
+        t.fmt,
+        t.update_time,
+        t.create_time,
+        t.create_by,
+        t.update_by,
+        GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        FROM t_curriculum t
+        LEFT JOIN t_curriculum_tag st ON t.id = st.kcid AND st.del_flag = '0' <!-- AND st.qyid = #{qyid} -->
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+        <where>
+            <if test="mc != null  and mc != ''">AND t.mc LIKE concat('%', #{mc}, '%')</if>
+            <if test="ms != null  and ms != ''">AND t.ms LIKE concat('%', #{ms}, '%')</if>
+            <if test="sftj != null  and sftj != ''">AND t.sftj = #{sftj}</if>
+            <if test="tags != null  and tags != ''">
+                And t.id IN (
+                SELECT
+                st.kcid
+                FROM
+                t_curriculum_tag st
+                WHERE
+                st.del_flag = '0' <!-- and st.qyid = #{qyid} -->
+                AND st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.kcid
+                <!--HAVING
+                count( st.kcid ) = #{params.tagsCount}-->
+                )
+            </if>
+            AND t.del_flag = '0'  AND  t.states = '99'
+
+        </where>
+        GROUP BY t.id) temp
+        JOIN t_curriculum_student cs on cs.kcid= temp.id
+        AND cs.xyid = #{xyid} AND cs.del_flag='0'
+        ORDER BY
+        cs.create_time desc
+    </select>
+
+    <select id="selectTCurriculumById" parameterType="Long" resultMap="TCurriculumResult">
+        SELECT  t.id,
+                t.mc,
+                t.ms,
+                t.fmt,
+                t.create_by,
+                t.create_time,
+                t.update_by,
+                t.update_time,
+                t.remark,
+                tcs.jd as kcjd,
+                case when
+                    tcs.id IS NULL THEN '0'
+                    else '1'
+                    end as 'getStatus',
+                case when
+                    tcs.id IS NULL THEN '未领取'
+                    else '已领取'
+                    end as 'getStatusLabel'
+        FROM t_curriculum t
+        left join t_curriculum_student tcs  on t.id = tcs.kcid and xyid=#{xyid}
+
+        WHERE t.id = #{id}
+    </select>
+
+    <select id="selectTCurriculumByIds" parameterType="map" resultMap="TCurriculumResult">
+        <include refid="selectTCurriculumVo"/>
+        WHERE t.id = #{id} and tcs.xyid = #{xyid}
+    </select>
+
+<!--    查询课程的标签列表-->
+    <select id="getCurriculumTags" resultType="Map">
+        SELECT
+            r.bqid id,
+            t.name,
+            count( r.bqid ) num
+        FROM
+            t_curriculum_tag r
+                INNER JOIN t_tag t ON t.id = r.bqid
+        WHERE  r.del_flag = '0'
+          <!-- AND r.qyid = #{ qyid } -->
+        GROUP BY
+            t.id
+        ORDER BY
+            num DESC
+    </select>
+
+<!--    首页-->
+    <select id="getHomeCurriculum" resultType="Map">
+        SELECT
+            t.id,
+            t.mc,
+            t.fmt ,t.create_time as  createTime,ts.jd
+        FROM
+                ( SELECT kcid,jd FROM t_curriculum_student WHERE xyid = #{xyid} AND del_flag = '0' ) ts
+                    INNER JOIN t_curriculum t ON t.id = ts.kcid
+        WHERE
+            t.states = '99'
+          and t.del_flag='0'
+        ORDER BY
+            t.create_time desc
+            <if test="num != null and num != ''">
+            LIMIT #{num}
+            </if>
+    </select>
+
+<!--    获取知识库列表-->
+    <select id="getKnowledgeInfo" resultMap="TCurriculumResult">
+        SELECT
+            t.id,t.mc,t.ms,t.fmt,t.create_by,t.sftj,s.id as sid,
+            case when s.id IS NULL
+            THEN '0'
+            else '1'
+            end as 'getStatus',
+            case when s.id IS NULL
+            THEN '未领取'
+            else '已领取'
+            end as 'getStatusLabel',
+           GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        FROM
+            t_curriculum t
+            LEFT JOIN t_curriculum_student s ON ( t.id = s.kcid AND s.del_flag = 0 )
+            <if test="xyid != null  and xyid != ''"> and s.xyid = #{xyid} </if>
+            LEFT JOIN t_curriculum_tag st ON t.id = st.kcid AND st.del_flag = '0'
+            LEFT JOIN t_tag tt ON st.bqid = tt.id
+        <where>
+            <if test="mc != null  and mc != ''"> AND t.mc LIKE concat('%', #{mc}, '%')</if>
+            <if test="id != null  and id != ''"> AND t.id = #{id}</if>
+            <if test="tags != null  and tags != ''">
+                And t.id IN (
+                SELECT st.kcid FROM t_curriculum_tag st
+                WHERE st.del_flag = '0' <!-- and st.qyid = #{qyid} -->
+                AND st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">#{item}</foreach>
+                GROUP BY
+                st.kcid
+                <!--HAVING
+                count( st.kcid ) = #{params.tagsCount}-->
+                )
+            </if>
+            and (t.kfcd = '0'
+            OR ( t.kfcd = 1 AND s.id IS NOT NULL  ))
+            and t.del_flag='0' and t.states='99'
+            <if test="sftj !=null and sftj != ''"> and t.sftj=#{sftj}</if>
+            <if test="order == 1"> AND s.id is not null </if>
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY t.id,sid
+        <choose>
+            <when test="order == 1">order by s.create_time desc</when>
+            <otherwise>order by t.update_time desc</otherwise>
+        </choose>
+
+
+    </select>
+
+    <select id="getHomeHotKc" resultType="Map">
+        SELECT
+            count( 1 ) num,
+            s.kcid as id,
+            t.mc
+        FROM
+            t_curriculum_student s
+                join t_curriculum t on t.id = s.kcid
+        where
+            t.del_flag='0'
+        GROUP BY
+            s.kcid
+        ORDER BY
+            num DESC
+            limit 8
+
+    </select>
+
+
+    <select id="selectTjCurriculumList" parameterType="TCurriculum" resultMap="TCurriculumResult">
+
+        SELECT
+        t.id,t.mc,t.ms,t.fmt,t.create_by,t.categoryId,
+        GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        FROM
+        t_curriculum t
+        LEFT JOIN t_curriculum_tag st ON t.id = st.kcid AND st.del_flag = '0'
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+        <where>
+            <if test="sftj != null  and sftj != ''">AND t.sftj = #{sftj}</if>
+            <if test="categoryId != null and categoryId != ''">
+                AND t.categoryId = #{categoryId}
+            </if>
+            and t.del_flag='0' and t.states='99'
+        </where>
+        GROUP BY t.id
+        order by t.update_time desc
+
+    </select>
+
+
+    <!--获取课程内容-->
+    <select id="selectKcContent" resultType="Map">
+
+        select
+        cc.cid,
+        s.kjid,
+        c.learn_time as 'learnTime',
+        IFNULL(s.history_study_time,0) as 'history'
+
+        from t_curriculum_content cc
+        left join t_courseware_student  s  on cc.sid =s.kjid
+        left join t_courseware c on c.id = cc.sid
+        where
+        s.xyid = #{xyid}
+        AND cc.source_type='kj'
+        <if test="kcids != null and kcids != ''">
+        and cc.cid in
+          <foreach item="id" collection="kcids" open="(" separator="," close=")">
+             #{id}
+          </foreach>
+        </if>
+    </select>
+
+<!--    =============新首页 ============   -->
+    <select id="getKcNotCompletedNum" resultType="int">
+        select count(1) as "num"
+        from t_curriculum_student
+        where xyid =#{xyid} and del_flag='0'
+        and  (jd->'$.rate' != 100 or jd->'$.rate' is null)
+    </select>
+
+    <select id="getKcYlqNum" resultType="int">
+        select count(1) as "num"
+        from t_curriculum_student
+        where xyid =#{xyid} and del_flag='0'
+    </select>
+    <select id="getLastStudy" resultType="com.sinosoft.etp.up.curriculum.domain.TCurriculum">
+        <include refid="selectTCurriculumVo"/>
+        <where>
+            tcs.xyid = #{xyid}
+            and tcs.del_flag = '0'
+            order by tcs.update_time desc limit 1
+        </where>
+    </select>
+</mapper>

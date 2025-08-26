@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.paper.mapper.PaperUnitMapper">
+
+    <resultMap type="PaperUnit" id="PaperUnitResult">
+        <result property="paperUnitId"    column="paper_unit_id"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="paperVer"    column="paper_ver"    />
+        <result property="display"    column="display"    />
+        <result property="quType"    column="qu_type"    />
+        <result property="quCount"    column="qu_count"    />
+        <result property="lc"    column="lc" typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"/>
+        <result property="totalScore"    column="total_score"    />
+        <result property="eachScore"    column="each_score"    />
+        <result property="quOrderFlag"    column="qu_order_flag"    />
+        <result property="answerOrderFlag"    column="answer_order_flag"    />
+        <result property="sort"    column="sort"    />
+        <result property="unitRule"    column="unit_rule" typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"    />
+    </resultMap>
+
+    <sql id="selectPaperUnitVo">
+        select paper_unit_id, paper_id, paper_ver, display, qu_type, qu_count, lc, total_score, each_score, qu_order_flag, answer_order_flag, sort, unit_rule from paper_unit
+    </sql>
+
+    <select id="selectPaperUnitByPaperId" parameterType="Long" resultMap="PaperUnitResult">
+        <include refid="selectPaperUnitVo"/>
+        where paper_id = #{paperId} order by sort
+    </select>
+
+    <insert id="insertPaperUnit" parameterType="PaperUnit" useGeneratedKeys="true" keyProperty="paperUnitId">
+        insert into paper_unit
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="paperUnitId != null">paper_unit_id,</if>
+            <if test="paperId != null">paper_id,</if>
+            <if test="paperVer != null">paper_ver,</if>
+            <if test="display != null">display,</if>
+            <if test="quType != null">qu_type,</if>
+            <if test="quCount != null">qu_count,</if>
+            <if test="lc != null">lc,</if>
+            <if test="totalScore != null">total_score,</if>
+            <if test="eachScore != null">each_score,</if>
+            <if test="quOrderFlag != null">qu_order_flag,</if>
+            <if test="answerOrderFlag != null">answer_order_flag,</if>
+            <if test="sort != null">sort,</if>
+            <if test="unitRule != null">unit_rule,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="paperUnitId != null">#{paperUnitId},</if>
+            <if test="paperId != null">#{paperId},</if>
+            <if test="paperVer != null">#{paperVer},</if>
+            <if test="display != null">#{display},</if>
+            <if test="quType != null">#{quType},</if>
+            <if test="quCount != null">#{quCount},</if>
+            <if test="lc != null">#{lc, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="totalScore != null">#{totalScore},</if>
+            <if test="eachScore != null">#{eachScore},</if>
+            <if test="quOrderFlag != null">#{quOrderFlag},</if>
+            <if test="answerOrderFlag != null">#{answerOrderFlag},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="unitRule != null">#{unitRule, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+         </trim>
+    </insert>
+
+    <insert id="batchInsertPaperUnit" parameterType="java.util.List">
+        insert into paper_unit(paper_unit_id, paper_id, paper_ver, display, qu_type, qu_count,
+                               total_score, each_score, qu_order_flag,
+                               answer_order_flag, sort, unit_rule) values
+        <foreach collection="paperUnits" item="item" index="index" separator=","  >
+            (#{item.paperUnitId}, #{item.paperId}, #{item.paperVer}, #{item.display}, #{item.quType}, #{item.quCount},
+            #{item.totalScore}, #{item.eachScore}, #{item.quOrderFlag}, #{item.answerOrderFlag}, #{item.sort},
+             #{item.unitRule, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler})
+        </foreach>
+    </insert>
+
+
+    <delete id="deletePaperUnitByPaperId" parameterType="Long">
+        delete from paper_unit where paper_id = #{paperId}
+    </delete>
+
+    <delete id="deletePaperUnitByPaperIds" parameterType="String">
+        delete from paper_unit where paper_id in
+        <foreach item="paperId" collection="array" open="(" separator="," close=")">
+            #{paperId}
+        </foreach>
+    </delete>
+</mapper>

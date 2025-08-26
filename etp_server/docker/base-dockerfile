@@ -1,0 +1,75 @@
+FROM centos:centos7.9.2009
+MAINTAINER wanglijie
+
+# docker build -f base-dockerfile -t jkingtools/centos-prod-dev:0.1.0 .
+
+# 安装依赖
+RUN yum install -y gcc gcc-c++
+RUN yum install -y pcre pcre-devel
+RUN yum install -y zlib zlib-devel
+RUN yum install -y openssl openssl-devel
+RUN yum install -y tcl
+RUN yum install -y wget
+
+# 安装Redis
+RUN mkdir -p /usr/local/redis
+RUN mkdir -p /usr/local/redis/sbin
+RUN mkdir -p /usr/local/redis/etc
+RUN mkdir -p /var/redis/log
+WORKDIR /usr/local/redis
+RUN wget http://192.168.78.129:8888/redis-5.0.14.tar.gz
+RUN tar -xzvf redis-5.0.14.tar.gz
+RUN rm -f redis-5.0.14.tar.gz
+WORKDIR  /usr/local/redis/redis-5.0.14
+RUN make && make install
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-server /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-cli /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-sentinel /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-trib.rb /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-check-rdb /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-check-aof /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/src/redis-benchmark /usr/local/redis/sbin
+RUN cp /usr/local/redis/redis-5.0.14/redis.conf /usr/local/redis/etc
+
+# 安装Nginx
+RUN mkdir -p /usr/local/nginx
+RUN mkdir -p /usr/local/nginx/tmp/client
+RUN groupadd nginx
+RUN useradd nginx -g nginx
+WORKDIR  /usr/local/nginx
+RUN wget http://192.168.78.129:8888/nginx-1.22.0.tar.gz
+RUN tar -xzvf nginx-1.22.0.tar.gz
+RUN rm -f nginx-1.22.0.tar.gz
+WORKDIR /usr/local/nginx/nginx-1.22.0
+RUN ./configure --prefix=/usr/local/nginx \
+  --conf-path=/usr/local/nginx/conf/nginx.conf \
+  --user=nginx --group=nginx \
+  --error-log-path=/usr/local/nginx/logs/error.log \
+  --http-log-path=/usr/local/nginx/logs/access.log \
+  --pid-path=/usr/local/nginx/pids/nginx.pid \
+  --lock-path=/usr/local/nginx/locks/nginx.lock \
+  --with-http_ssl_module \
+  --with-http_stub_status_module \
+  --with-http_gzip_static_module \
+  --with-http_sub_module \
+  --http-client-body-temp-path=/usr/local/nginx/tmp/client \
+  --http-proxy-temp-path=/usr/local/nginx/tmp/proxy \
+  --http-fastcgi-temp-path=/usr/local/nginx/tmp/fastcgi \
+  --http-uwsgi-temp-path=/usr/local/nginx/tmp/uwsgi \
+  --http-scgi-temp-path=/usr/local/nginx/tmp/scgi
+RUN make && make install
+
+# 安装 MySQL
+WORKDIR  /root
+RUN wget http://192.168.78.129:8888/mysql-8.0.28-1.el7.x86_64.rpm-bundle.tar
+RUN tar -xvf mysql-8.0.28-1.el7.x86_64.rpm-bundle.tar
+RUN yum install -y perl net-tools libaio numactl
+RUN rpm -ivh mysql-community-common-8.0.28-1.el7.x86_64.rpm
+RUN rpm -ivh mysql-community-client-plugins-8.0.28-1.el7.x86_64.rpm
+RUN rpm -ivh mysql-community-libs-8.0.28-1.el7.x86_64.rpm
+RUN rpm -ivh mysql-community-client-8.0.28-1.el7.x86_64.rpm
+RUN rpm -ivh mysql-community-icu-data-files-8.0.28-1.el7.x86_64.rpm
+RUN rpm -ivh mysql-community-server-8.0.28-1.el7.x86_64.rpm
+RUN rm -rf mysql*
+# 大小写不敏感
+RUN echo "lower_case_table_names=1" > /etc/my.cnf

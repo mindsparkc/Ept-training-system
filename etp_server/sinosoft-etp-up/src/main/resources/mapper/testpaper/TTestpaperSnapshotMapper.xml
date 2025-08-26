@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.testpaper.mapper.TTestpaperSnapshotMapper">
+    
+    <resultMap type="TTestpaperSnapshot" id="TTestpaperSnapshotResult">
+        <result property="id"    column="id"    />
+        <result property="ksid"    column="ksid"    />
+        <result property="sjid"    column="sjid"    />
+        <result property="snapshot"    column="snapshot"    />
+        <result property="snapCreateTime"    column="snap_create_time"    />
+        <result property="da"    column="da"    />
+        <result property="score"    column="score"    />
+        <result property="rate"    column="rate"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTTestpaperSnapshotVo">
+        select id, ksid, sjid, snapshot, snap_create_time, del_flag, create_by, create_time, update_by, update_time, remark from t_testpaper_snapshot
+    </sql>
+
+    <select id="selectTTestpaperSnapshotList" parameterType="TTestpaperSnapshot" resultMap="TTestpaperSnapshotResult">
+        <include refid="selectTTestpaperSnapshotVo"/>
+        <where>  
+            <if test="ksid != null "> and ksid = #{ksid}</if>
+            <if test="sjid != null "> and sjid = #{sjid}</if>
+            <if test="snapshot != null  and snapshot != ''"> and snapshot = #{snapshot}</if>
+            <if test="snapCreateTime != null "> and snap_create_time = #{snapCreateTime}</if>
+            <if test="da != null  and da != ''"> and da = #{da}</if>
+            <if test="score != null "> and score = #{score}</if>
+            <if test="rate != null "> and rate = #{rate}</if>
+        </where>
+    </select>
+    
+    <select id="selectTTestpaperSnapshotById" parameterType="integer" resultMap="TTestpaperSnapshotResult">
+        <include refid="selectTTestpaperSnapshotVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTTestpaperSnapshot" parameterType="TTestpaperSnapshot" useGeneratedKeys="true" keyProperty="id">
+        insert into t_testpaper_snapshot
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ksid != null">ksid,</if>
+            <if test="sjid != null">sjid,</if>
+            <if test="snapshot != null">snapshot,</if>
+            <if test="snapCreateTime != null">snap_create_time,</if>
+            <if test="da != null">da,</if>
+            <if test="score != null">score,</if>
+            <if test="rate != null">rate,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ksid != null">#{ksid},</if>
+            <if test="sjid != null">#{sjid},</if>
+            <if test="snapshot != null">#{snapshot},</if>
+            <if test="snapCreateTime != null">#{snapCreateTime},</if>
+            <if test="da != null">#{da},</if>
+            <if test="score != null">#{score},</if>
+            <if test="rate != null">#{rate},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTTestpaperSnapshot" parameterType="TTestpaperSnapshot">
+        update t_testpaper_snapshot
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ksid != null">ksid = #{ksid},</if>
+            <if test="sjid != null">sjid = #{sjid},</if>
+            <if test="snapshot != null">snapshot = #{snapshot},</if>
+            <if test="snapCreateTime != null">snap_create_time = #{snapCreateTime},</if>
+            <if test="da != null">da = #{da},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="rate != null">rate = #{rate},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTTestpaperSnapshotById" parameterType="String">
+        delete from t_testpaper_snapshot where id = #{id}
+    </delete>
+
+    <delete id="deleteTTestpaperSnapshotByIds" parameterType="String">
+        delete from t_testpaper_snapshot where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="selectTTestpaperSnapshotByInfo" parameterType="map" resultMap="TTestpaperSnapshotResult">
+        <include refid="selectTTestpaperSnapshotVo"/>
+        where ksid = #{ksid} and sjid = #{sjid}
+    </select>
+
+</mapper>

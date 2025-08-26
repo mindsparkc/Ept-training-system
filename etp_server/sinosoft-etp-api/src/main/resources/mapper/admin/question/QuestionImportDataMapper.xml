@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.admin.question.mapper.QuestionImportDataMapper">
+
+    <resultMap type="QuestionImportData" id="QuestionResult">
+        <result property="quId"    column="qu_id"    />
+        <result property="version"    column="version"    />
+        <result property="content"    column="content"    />
+        <result property="type"    column="type"    />
+        <result property="level"    column="level"    />
+        <result property="analysis"    column="analysis"    />
+        <result property="tarinFlag"    column="tarin_flag"    />
+        <result property="examFlag"    column="exam_flag"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="answers"    column="answers"   typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+        <result property="children"    column="children"   typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+        <result property="recordId"    column="record_id"    />
+    </resultMap>
+
+    <sql id="selectQuestionVo">
+        select qu_id, version, content, type, level,
+               analysis, tarin_flag, exam_flag, user_id, dept_id,
+               del_flag, create_by, create_time, update_by, update_time, remark ,answers, children,
+               record_id
+        from question_import_data qu
+    </sql>
+
+    <!-- // 批量导入题目
+    public Long insertQuestion(Question); -->
+    <insert id="insertQuestion" parameterType="QuestionImportData" useGeneratedKeys="true" keyProperty="quId">
+        insert into question_import_data
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="rowNum != null">row_num,</if>
+            <if test="sn != null">sn,</if>
+            <if test="quId != null">qu_id,</if>
+            <if test="version != null">version,</if>
+            <if test="content != null and content != ''">content,</if>
+            <if test="type != null and type != ''">type,</if>
+            <if test="level != null and level != ''">level,</if>
+            <if test="analysis != null">analysis,</if>
+            <if test="tarinFlag != null">tarin_flag,</if>
+            <if test="examFlag != null">exam_flag,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="delFlag != null and delFlag != ''">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+            <if test="answers != null and answers != ''">answers,</if>
+            <if test="children != null and children != ''">children,</if>
+            <if test="recordId != null and recordId != ''">record_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="rowNum != null">#{rowNum},</if>
+            <if test="sn != null">#{sn},</if>
+            <if test="quId != null">#{quId},</if>
+            <if test="version != null">#{version},</if>
+            <if test="content != null and content != ''">#{content},</if>
+            <if test="type != null and type != ''">#{type},</if>
+            <if test="level != null and level != ''">#{level},</if>
+            <if test="analysis != null">#{analysis},</if>
+            <if test="tarinFlag != null">#{tarinFlag},</if>
+            <if test="examFlag != null">#{examFlag},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="delFlag != null and delFlag != ''">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+            <if test="answers != null and answers != ''">#{answers, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="children != null and children != ''">#{children, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="recordId != null and recordId != ''">#{recordId},</if>
+        </trim>
+    </insert>
+
+    <!-- // 根据 ID 查询导入的题目列表
+    public List<Question> selectImportData(Long recordId); -->
+    <select id="selectImportData" resultMap="QuestionResult">
+        <include refid="selectQuestionVo"></include>
+        where record_id = #{recordId}
+    </select>
+
+    <!-- // 修改某 ID 导入，某题目的信息
+    public void editImportData(Question question); -->
+    <update id="editImportData" parameterType="Question">
+        update question_import_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="version != null">version = #{version},</if>
+            <if test="content != null and content != ''">content = #{content},</if>
+            <if test="level != null and level != ''">level = #{level},</if>
+            <if test="analysis != null">analysis = #{analysis},</if>
+            <if test="tarinFlag != null">tarin_flag = #{tarinFlag},</if>
+            <if test="examFlag != null">exam_flag = #{examFlag},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+            <if test="answers != null and answers != ''">answers = #{answers, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="children != null and children != ''">children = #{children, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+        </trim>
+            where qu_id = #{quId}
+    </update>
+
+    <!-- // 将导入的某条题目标记为删除，这样这条题目在导入时就不会导入到题库中了
+    public void deleteImportData(Long[] quIds); -->
+    <update id="deleteImportData" parameterType="String">
+        update question_import_data set del_flag='2' where qu_id in
+        <foreach item="quId" collection="array" open="(" separator="," close=")">
+            #{quId}
+        </foreach>
+    </update>
+</mapper>

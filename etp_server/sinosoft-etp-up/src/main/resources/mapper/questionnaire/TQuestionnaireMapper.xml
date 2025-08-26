@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.questionnaire.mapper.TQuestionnaireMapper">
+
+    <resultMap type="TQuestionnaire" id="TQuestionnaireResult">
+        <result property="id"    column="id"    />
+        <result property="wjmc"    column="wjmc"    />
+        <result property="qyzt"    column="qyzt"    />
+        <result property="fm"    column="fm"    />
+        <result property="ms"    column="ms"    />
+        <result property="fb"    column="fb"    />
+        <result property="nr"    column="nr"    />
+        <result property="beginTime"    column="begin_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="kfcd"    column="kfcd"    />
+        <result property="sfnm"    column="sfnm"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="wjnr"    column="wjnr"    />
+    </resultMap>
+
+    <sql id="selectTQuestionnaireVo">
+        select tq.id,
+            tq.wjmc,
+            tq.qyzt,
+            tq.fm,
+            tq.ms,
+            tq.fb,
+            tq.nr,
+            tq.begin_time,
+            tq.end_time,
+            tq.kfcd,
+            tq.sfnm,
+            tq.del_flag,
+            tq.create_by,
+            tq.create_time,
+            tq.update_by,
+            tq.update_time,
+            tq.remark,
+            GROUP_CONCAT(distinct tt.name SEPARATOR ',') tags,
+            tqs.wjnr,
+            case
+                when tq.begin_time > NOW() then '未开始'
+                when tq.begin_time &lt;= NOW() and tqs.wjnr is NULL and tq.end_time > NOW() then '进行中'
+                when tqs.wjnr is not NULL then '已完成'
+                when tq.end_time &lt; NOW() and tqs.wjnr is NULL then '已结束'
+            end  as status
+        from t_questionnaire tq
+        left join t_questionnaire_student tqs on (tq.id = tqs.wjid and tqs.xyid = #{xyid})
+        left join t_questionnaire_tag tqt on tq.id = tqt.wjid
+        left join t_tag tt on tqt.bqid = tt.id
+
+    </sql>
+
+    <select id="selectTQuestionnaireList" parameterType="TQuestionnaire" resultMap="TQuestionnaireResult">
+        <include refid="selectTQuestionnaireVo"/>
+        <where>
+            tq.del_flag = '0'
+            <if test="wjmc != null  and wjmc != ''"> and tq.wjmc like concat('%', #{wjmc}, '%')</if>
+<!--            <if test="qyzt != null  and qyzt != ''"> and qyzt = #{qyzt}</if>-->
+            <if test="ms != null  and ms != ''"> and tq.ms = #{ms}</if>
+<!--            <if test="fb != null  and fb != ''"> and fb = #{fb}</if>-->
+            <if test="nr != null  and nr != ''"> and tq.nr = #{nr}</if>
+            <if test="beginTime != null "> and tq.begin_time = #{beginTime}</if>
+            <if test="endTime != null "> and tq.end_time = #{endTime}</if>
+            <if test="sfnm != null  and sfnm != ''"> and tq.sfnm = #{sfnm}</if>
+            <if test="tags != null  and tags != ''">
+                AND tq.id IN (
+                SELECT
+                tqt.wjid
+                FROM
+                t_questionnaire_tag tqt
+                WHERE
+                tqt.del_flag = '0'
+                AND tqt.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                tqt.wjid
+               <!-- HAVING
+                count( tqt.wjid ) = #{params.tagsCount} -->
+                )
+            </if>
+            and (tq.kfcd = '0' or
+            ( tq.kfcd = '1'	and	tqs.id IS NOT NULL))
+            and tq.del_flag = '0'
+            and tq.qyzt = '0'
+            and tq.fb = '99'
+            <!-- 数据范围过滤 -->
+            /*${params.dataScope}*/
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        group by tq.id,tqs.wjnr
+        order by FIELD(status,'进行中','未开始','已完成','已结束'), tq.update_time desc
+    </select>
+
+    <select id="selectTQuestionnaireById" parameterType="Long" resultMap="TQuestionnaireResult">
+        select tq.id,
+               tq.wjmc,
+               tq.qyzt,
+               tq.fm,
+               tq.ms,
+               tq.fb,
+               tq.nr,
+               tq.begin_time,
+               tq.end_time,
+               tq.kfcd,
+               tq.sfnm,
+               tq.del_flag,
+               tq.create_by,
+               tq.create_time,
+               tq.update_by,
+               tq.update_time,
+               tq.remark,
+               case
+                   when tq.begin_time > NOW() then '未开始'
+                   when tq.begin_time &lt;= NOW() and tqs.wjnr is NULL and tq.end_time > NOW() then '进行中'
+                   when tqs.wjnr is not NULL then '已完成'
+                   when tq.end_time &lt; NOW() and tqs.wjnr is NULL then '已结束'
+                   end  as status,
+               tqs.wjnr
+        from t_questionnaire tq
+        left join t_questionnaire_student tqs on (tq.id = tqs.wjid and tqs.xyid =#{xyid})
+        where tq.id = #{id}
+    </select>
+
+    <insert id="insertTQuestionnaire" parameterType="TQuestionnaire" useGeneratedKeys="true" keyProperty="id">
+        insert into t_questionnaire
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="wjmc != null">wjmc,</if>
+            <if test="qyzt != null">qyzt,</if>
+            <if test="fm != null">fm,</if>
+            <if test="ms != null">ms,</if>
+            <if test="fb != null">fb,</if>
+            <if test="nr != null">nr,</if>
+            <if test="beginTime != null">begin_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="kfcd != null">kfcd,</if>
+            <if test="sfnm != null">sfnm,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="wjmc != null">#{wjmc},</if>
+            <if test="qyzt != null">#{qyzt},</if>
+            <if test="fm != null">#{fm},</if>
+            <if test="ms != null">#{ms},</if>
+            <if test="fb != null">#{fb},</if>
+            <if test="nr != null">#{nr},</if>
+            <if test="beginTime != null">#{beginTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="kfcd != null">#{kfcd},</if>
+            <if test="sfnm != null">#{sfnm},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTQuestionnaire" parameterType="TQuestionnaire">
+        update t_questionnaire
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="wjmc != null">wjmc = #{wjmc},</if>
+            <if test="qyzt != null">qyzt = #{qyzt},</if>
+            <if test="fm != null">fm = #{fm},</if>
+            <if test="ms != null">ms = #{ms},</if>
+            <if test="fb != null">fb = #{fb},</if>
+            <if test="nr != null">nr = #{nr},</if>
+            <if test="beginTime != null">begin_time = #{beginTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="kfcd != null">kfcd = #{kfcd},</if>
+            <if test="sfnm != null">sfnm = #{sfnm},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTQuestionnaireById" parameterType="Long">
+        delete from t_questionnaire where id = #{id}
+    </delete>
+
+    <delete id="deleteTQuestionnaireByIds" parameterType="String">
+        delete from t_questionnaire where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <select id="getHomeQuestionnaire" parameterType="Long" resultType="Map">
+
+        SELECT
+            q.id,q.wjmc,q.begin_time as kssj,q.end_time as jssj
+        FROM
+            t_questionnaire	q
+            left JOIN t_questionnaire_student st ON q.id = st.wjid and st.xyid=#{xyid}
+        WHERE
+          q.del_flag = '0'
+          AND q.qyzt = '0'
+          and q.fb = '99'
+          and q.end_time > NOW()
+          and (q.kfcd = '0'
+          OR ( q.kfcd = 1 AND st.id IS NOT NULL  ))
+          and st.wjnr is null
+        order by q.create_time desc
+        limit 1
+    </select>
+</mapper>

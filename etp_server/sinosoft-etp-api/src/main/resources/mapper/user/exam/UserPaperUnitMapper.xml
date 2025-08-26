@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.user.exam.mapper.UserPaperUnitMapper">
+
+    <resultMap type="PaperUnit" id="PaperUnitResult">
+        <result property="paperUnitId"    column="paper_unit_id"    />
+        <result property="paperId"    column="paper_id"    />
+        <result property="display"    column="display"    />
+        <result property="quType"    column="qu_type"    />
+        <result property="quCount"    column="qu_count"    />
+        <result property="lc"    column="lc" typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"/>
+        <result property="totalScore"    column="total_score"    />
+        <result property="eachScore"    column="each_score"    />
+        <result property="quOrderFlag"    column="qu_order_flag"    />
+        <result property="answerOrderFlag"    column="answer_order_flag"    />
+        <result property="sort"    column="sort"    />
+        <result property="unitRule"    column="unit_rule" typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"/>
+    </resultMap>
+
+    <sql id="selectPaperUnitVo">
+        select paper_unit_id, paper_id, display, qu_type, qu_count, lc, total_score, each_score, qu_order_flag, answer_order_flag, sort, unit_rule from paper_unit
+    </sql>
+
+    <select id="selectPaperUnitByPaperId" parameterType="Long" resultMap="PaperUnitResult">
+        <include refid="selectPaperUnitVo"/>
+        where paper_id = #{paperId} order by sort
+    </select>
+</mapper>

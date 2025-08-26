@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.examination.mapper.TExaminationCompanyWithCpMapper">
+
+    <resultMap type="TExaminationCompanyWithCp" id="TExaminationCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="ksid"    column="ksid"    />
+        <result property="qyid"    column="qyid"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTExaminationCompanyVo">
+        select id, ksid, qyid, del_flag, create_by, create_time, update_by, update_time, remark from t_examination_company
+    </sql>
+
+    <select id="selectTExaminationCompanyList" parameterType="TExaminationCompanyWithCp" resultMap="TExaminationCompanyResult">
+        <include refid="selectTExaminationCompanyVo"/>
+        <where>
+            <if test="ksid != null "> and ksid = #{ksid}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+
+    <select id="selectTExaminationCompanyById" parameterType="Long" resultMap="TExaminationCompanyResult">
+        <include refid="selectTExaminationCompanyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTExaminationCompany" parameterType="TExaminationCompanyWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_examination_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="ksid != null">ksid,</if>
+            <if test="qyid != null">qyid,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="ksid != null">#{ksid},</if>
+            <if test="qyid != null">#{qyid},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTExaminationCompany" parameterType="TExaminationCompanyWithCp">
+        update t_examination_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="ksid != null">ksid = #{ksid},</if>
+            <if test="qyid != null">qyid = #{qyid},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTExaminationCompanyById" parameterType="Long">
+        delete from t_examination_company where id = #{id}
+    </delete>
+
+    <delete id="deleteTExaminationCompanyByIds" parameterType="String">
+        delete from t_examination_company where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

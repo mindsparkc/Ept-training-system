@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.sign.mapper.TSignWithCpMapper">
+
+    <resultMap type="TSignWithCp" id="TSignResult">
+        <result property="id"    column="id"    />
+        <result property="hdmc"    column="hdmc"    />
+        <result property="hdfmc"    column="hdfmc"    />
+        <result property="hdfm"    column="hdfm"    />
+        <result property="hdnr"    column="hdnr"    />
+        <result property="kssj"    column="kssj"    />
+        <result property="jssj"    column="jssj"    />
+        <result property="kfcd"    column="kfcd"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTSignVo">
+        select ts.id, ts.hdmc, ts.hdfmc, ts.hdfm, ts.hdnr, ts.kssj, ts.jssj, ts.kfcd,
+               ts.del_flag, ts.create_by, ts.create_time, ts.update_by,
+               ts.update_time, ts.remark,ts.status,
+               GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_sign ts
+        <!-- LEFT join t_sign_company tsc on ts.id = tsc.sign_id
+        LEFT join sys_dept d ON d.dept_id = tsc.qyid -->
+
+        LEFT JOIN t_sign_tag tst ON tst.hdid = ts.id
+        LEFT JOIN t_tag tt ON tst.bqid = tt.id
+    </sql>
+
+    <select id="selectTSignList" parameterType="TSignWithCp" resultMap="TSignResult">
+        <include refid="selectTSignVo"/>
+        <where>
+            <if test="hdmc != null  and hdmc != ''"> and ts.hdmc like concat('%', #{hdmc}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                AND ts.id IN (
+                SELECT
+                tst.hdid
+                FROM
+                t_sign_tag tst
+                WHERE
+                tst.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                tst.hdid
+                <!--HAVING
+                count( tst.hdid ) = #{params.tagsCount}-->
+                )
+            </if>
+            <if test="hdfmc != null  and hdfmc != ''"> and ts.hdfmc = #{hdfmc}</if>
+            <if test="hdnr != null  and hdnr != ''"> and ts.hdnr like concat('%', #{hdnr}, '%')</if>
+            <if test="kfcd != null  and kfcd != ''"> and ts.kfcd = #{kfcd}</if>
+            <if test="status != null  and status != ''"> and ts.status = #{status}</if>
+             and ts.del_flag = '0'
+            <!-- 数据范围过滤 -->
+            /*${params.dataScope}*/
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY ts.id
+        ORDER BY ts.update_time DESC
+    </select>
+
+    <select id="selectTSignById" parameterType="Long" resultMap="TSignResult">
+        <include refid="selectTSignVo"/>
+        where ts.id = #{id}
+    </select>
+
+    <insert id="insertTSign" parameterType="TSignWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_sign
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="hdmc != null and hdmc != ''">hdmc,</if>
+            <if test="hdfmc != null">hdfmc,</if>
+            <if test="hdfm != null and hdfm != ''">hdfm,</if>
+            <if test="hdnr != null and hdnr != ''">hdnr,</if>
+            <if test="kssj != null">kssj,</if>
+            <if test="jssj != null">jssj,</if>
+            <if test="kfcd != null">kfcd,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="hdmc != null and hdmc != ''">#{hdmc},</if>
+            <if test="hdfmc != null">#{hdfmc},</if>
+            <if test="hdfm != null and hdfm != ''">#{hdfm},</if>
+            <if test="hdnr != null and hdnr != ''">#{hdnr},</if>
+            <if test="kssj != null">#{kssj},</if>
+            <if test="jssj != null">#{jssj},</if>
+            <if test="kfcd != null">#{kfcd},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTSign" parameterType="TSignWithCp">
+        update t_sign
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="hdmc != null and hdmc != ''">hdmc = #{hdmc},</if>
+            <if test="hdfmc != null">hdfmc = #{hdfmc},</if>
+            <if test="hdfm != null and hdfm != ''">hdfm = #{hdfm},</if>
+            <if test="hdnr != null and hdnr != ''">hdnr = #{hdnr},</if>
+            <if test="kssj != null">kssj = #{kssj},</if>
+            <if test="jssj != null">jssj = #{jssj},</if>
+            <if test="kfcd != null">kfcd = #{kfcd},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateSignStatus"  parameterType="TSignWithCp">
+        update t_sign set status = #{status}
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTSignById" parameterType="Long">
+        update t_sign set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTSignByIds" parameterType="String">
+        update t_sign set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

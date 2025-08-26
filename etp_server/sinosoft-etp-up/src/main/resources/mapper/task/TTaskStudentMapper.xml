@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.task.mapper.TTaskStudentMapper">
+
+    <resultMap type="TTaskStudent" id="TTaskStudentResult">
+        <result property="id"    column="id"    />
+        <result property="rwid"    column="rwid"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="jd"    column="jd"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTTaskStudentVo">
+        select id, rwid, xyid, jd, del_flag, create_by, create_time, update_by, update_time from t_task_student
+    </sql>
+
+    <update id="updateTTaskStudent" parameterType="TTaskStudent">
+        update t_task_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="rwid != null">rwid = #{rwid},</if>
+            <if test="xyid != null">xyid = #{xyid},</if>
+            <if test="jd != null">jd = #{jd},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where rwid = #{rwid} and xyid=#{xyid}
+    </update>
+
+    <update id="updateTaskProgress">
+        update t_task_student set jd = JSON_SET(jd, "$.completed",#{completed},"$.rate",#{rate})
+        where rwid = #{rwid} and xyid=#{xyid}
+    </update>
+
+    <select id="getTaskCurrentId" resultType="Long">
+        select t.jd->'$.lastStudy.current' as "currentId" from t_task_student t
+        where t.rwid= #{rwid} and xyid=#{xyid} and t.jd->"$.lastStudy.current" in
+        <foreach item="kjid" collection="kjids" open="(" separator="," close=")">
+            #{kjid}
+        </foreach>
+    </select>
+
+    <update id="updateTaskJd">
+        update t_task_student set  jd = JSON_SET(jd, "$.lastStudy.current",#{current},"$.lastStudy.source_type",'kj')
+        where rwid = #{rwid} and xyid=#{xyid}
+    </update>
+</mapper>

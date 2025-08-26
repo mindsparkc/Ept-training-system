@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.ceshi.mapper.CeshidatascopeMapper">
+    
+    <resultMap type="Ceshidatascope" id="CeshidatascopeResult">
+        <result property="name"    column="name"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="userId"    column="user_id"    />
+    </resultMap>
+
+    <sql id="selectCeshidatascopeVo">
+        select name, dept_id, user_id from ceshidatascope d
+    </sql>
+
+    <select id="selectCeshidatascopeList" parameterType="Ceshidatascope" resultMap="CeshidatascopeResult">
+        <include refid="selectCeshidatascopeVo"/>
+        <where>  
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="deptId != null "> and dept_id = #{deptId}</if>
+            <if test="userId != null "> and user_id = #{userId}</if>
+            ${params.dataScope}
+        </where>
+
+    </select>
+
+    <select id="selectCeshidatascopeByIds" parameterType="String" resultMap="CeshidatascopeResult">
+        <include refid="selectCeshidatascopeVo"/>
+        where name in
+        <foreach item="name" collection="array" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+    </select>
+    
+    <select id="selectCeshidatascopeById" parameterType="String" resultMap="CeshidatascopeResult">
+        <include refid="selectCeshidatascopeVo"/>
+        where name = #{name}
+    </select>
+        
+    <insert id="insertCeshidatascope" parameterType="Ceshidatascope">
+        insert into ceshidatascope
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name != null">name,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="userId != null">user_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="userId != null">#{userId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCeshidatascope" parameterType="Ceshidatascope">
+        update ceshidatascope
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+        </trim>
+        where name = #{name}
+    </update>
+
+    <delete id="deleteCeshidatascopeById" parameterType="String">
+        delete from ceshidatascope where name = #{name}
+    </delete>
+
+    <delete id="deleteCeshidatascopeByIds" parameterType="String">
+        delete from ceshidatascope where name in 
+        <foreach item="name" collection="array" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>etp_root</artifactId>
+        <groupId>com.sinosoft.etp</groupId>
+        <version>3.6.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.sinosoft.etp</groupId>
+    <artifactId>sinosoft-etp-api</artifactId>
+
+    <dependencies>
+        <!--若依通用工具-->
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-etp-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-framework</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sinosoft.etp</groupId>
+            <artifactId>sinosoft-system</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-scratchpad</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.4.14</version>
+        </dependency>
+        <!-- EventBus 工具包 -->
+        <dependency>
+            <groupId>org.greenrobot</groupId>
+            <artifactId>eventbus-java</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+    </dependencies>
+
+</project>

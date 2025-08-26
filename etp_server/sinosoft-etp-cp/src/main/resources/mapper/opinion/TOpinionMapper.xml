@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.opinion.mapper.TOpinionWithCpMapper">
+
+    <resultMap type="TOpinionWithCp" id="TOpinionResult">
+        <result property="id"    column="id"    />
+        <result property="yjms"    column="yjms"    />
+        <result property="fj"    column="fj"    />
+        <result property="hf"    column="hf"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="hfStatus"    column="hf_status"    />
+    </resultMap>
+
+    <sql id="selectTOpinionVo">
+        select o.id, o.yjms, o.fj,o.fjname, o.hf, o.xyid, o.del_flag, o.create_by, o.create_time,
+               o.update_by, o.update_time, o.remark, o.hf_status,u.user_name as xyname
+        from t_opinion o
+    </sql>
+
+    <select id="selectTOpinionList" parameterType="TOpinionWithCp" resultMap="TOpinionResult">
+        <include refid="selectTOpinionVo"/>
+        left join
+        (
+            SELECT
+                u.user_id ,
+                u.user_name
+            FROM
+                sys_user u
+            WHERE
+                u.dept_id IN
+                    (
+                        SELECT
+                            dept_id
+                        FROM
+                        (
+                            SELECT
+                            t1.dept_id,
+                            t1.dept_name,
+                        IF
+                            ( find_in_set( parent_id, @pids ) > 0, @pids := concat( @pids, ',', dept_id ), 0 ) AS ischild
+                        FROM
+                            ( SELECT dept_id, parent_id, dept_name FROM sys_dept t ORDER BY parent_id, dept_id ) t1,
+                            ( SELECT @pids := #{deptId} ) t2
+                        ) t3
+                        WHERE
+                            ischild != 0
+                            OR dept_id = #{deptId}
+                    )
+            AND u.del_flag = '0'
+        ) u on u.user_id = o.xyid
+        <where>
+            <if test="yjms != null  and yjms != ''"> and o.yjms like concat('%', #{yjms}, '%')</if>
+            <if test="hf != null  and hf != ''"> and o.hf like concat('%', #{hf}, '%')</if>
+            <if test="hfStatus != null  and hfStatus != ''"> and o.hf_status = #{hfStatus}</if>
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        order by o.create_time DESC
+    </select>
+
+    <select id="selectTOpinionById" parameterType="Long" resultMap="TOpinionResult">
+        <include refid="selectTOpinionVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTOpinion" parameterType="TOpinionWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_opinion
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="yjms != null">yjms,</if>
+            <if test="fj != null">fj,</if>
+            <if test="hf != null">hf,</if>
+            <if test="xyid != null">xyid,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="hfStatus != null">hf_status,</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">create_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="tenantId != null">tenant_id,</if>
+            <if test="pubFlag != null">pub_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="yjms != null">#{yjms},</if>
+            <if test="fj != null">#{fj},</if>
+            <if test="hf != null">#{hf},</if>
+            <if test="xyid != null">#{xyid},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="hfStatus != null">#{hfStatus},</if>
+
+            /*数据权限字段*/
+            <if test="createUserId != null">#{createUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="tenantId != null">#{tenantId},</if>
+            <if test="pubFlag != null">#{pubFlag},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTOpinion" parameterType="TOpinionWithCp">
+        update t_opinion
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="yjms != null">yjms = #{yjms},</if>
+            <if test="fj != null">fj = #{fj},</if>
+            <if test="hf != null">hf = #{hf},</if>
+            <if test="xyid != null">xyid = #{xyid},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="hfStatus != null">hf_status = #{hfStatus},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTOpinionById" parameterType="Long">
+        delete from t_opinion where id = #{id}
+    </delete>
+
+    <delete id="deleteTOpinionByIds" parameterType="String">
+        delete from t_opinion where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

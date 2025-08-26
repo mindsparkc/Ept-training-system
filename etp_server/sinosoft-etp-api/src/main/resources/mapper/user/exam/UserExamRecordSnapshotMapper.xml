@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.user.exam.mapper.UserExamRecordSnapshotMapper">
+
+    <resultMap type="UserExamRecordSnapshot" id="ExamRecordSnapshotResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="snapshot"    column="snapshot" typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+        <result property="snapshot2"    column="snapshot2" typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"    />
+        <result property="snapshot3"    column="snapshot3"  typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"   />
+    </resultMap>
+
+    <sql id="selectExamRecordSnapshotVo">
+        select record_id, snapshot, snapshot2, snapshot3 from exam_record_snapshot
+    </sql>
+
+    <select id="selectExamRecordSnapshotById" parameterType="Long" resultMap="ExamRecordSnapshotResult">
+        <include refid="selectExamRecordSnapshotVo"/>
+        where record_id = #{recordId}
+    </select>
+
+    <insert id="insertExamRecordSnapshot" parameterType="UserExamRecordSnapshot">
+        insert into exam_record_snapshot
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="recordId != null">record_id,</if>
+            <if test="snapshot != null">snapshot,</if>
+            <if test="snapshot2 != null">snapshot2,</if>
+            <if test="snapshot3 != null">snapshot3,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="recordId != null">#{recordId},</if>
+            <if test="snapshot != null">#{snapshot, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="snapshot2 != null">#{snapshot2, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="snapshot3 != null">#{snapshot3, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+        </trim>
+    </insert>
+
+    <update id="updateExamRecordSnapshot" parameterType="UserExamRecordSnapshot">
+        update exam_record_snapshot
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="snapshot != null">snapshot = #{snapshot, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="snapshot2 != null">snapshot2 = #{snapshot2, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+            <if test="snapshot3 != null">snapshot3 = #{snapshot3, typeHandler=cn.jkingtools.ibatis.type.JsonTypeHandler},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+</mapper>

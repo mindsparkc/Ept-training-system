@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.task.mapper.TTaskMapper">
+
+    <resultMap type="TTask" id="TTaskResult">
+        <result property="id" column="id"/>
+        <result property="mc" column="mc"/>
+        <result property="ms" column="ms"/>
+        <result property="fmt" column="fmt"/>
+        <result property="kfcd" column="kfcd"/>
+        <result property="taskBeginTime" column="task_begin_time"/>
+        <result property="taskEndTime" column="task_end_time"/>
+        <result property="taskSendTime" column="task_send_time"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="remark" column="remark"/>
+        <result property="rwjd" column="rwjd"/>
+        <result property="jd" column="jd"/>
+    </resultMap>
+
+    <sql id="selectTTaskVo">
+        select t.id,
+               t.mc,
+               t.ms,
+               t.fmt,
+               t.kfcd,
+               t.states,
+               t.task_begin_time,
+               t.task_end_time,
+               t.task_send_time,
+               t.del_flag,
+               t.create_by,
+               t.create_time,
+               t.update_by,
+               t.update_time,
+               t.remark,
+               ts.jd,
+               GROUP_CONCAT(DISTINCT tt.name) tags
+        from t_task t
+        <!-- JOIN t_task_company tc ON t.id = tc.rwid
+        JOIN sys_dept d ON d.dept_id = tc.qyid -->
+        LEFT JOIN t_task_student ts on ts.rwid = t.id
+        LEFT JOIN t_task_tag st ON t.id = st.rwid
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+    </sql>
+
+    <select id="selectTTaskList" parameterType="TTask" resultMap="TTaskResult">
+        SELECT
+            t.id,
+            t.mc,
+            t.ms,
+            t.fmt,
+            t.task_begin_time,
+            t.task_end_time,
+            GROUP_CONCAT( tt.NAME SEPARATOR ',' ) tags ,
+            ts.jd,
+        case
+            when ts.jd->'$.rate' = 100 then '已完成'
+            when ts.jd->'$.lastStudy.current' is not null  then '进行中'
+            when now() > t.task_end_time then '已结束'
+            else '未开始'
+        end  rwjd
+        FROM t_task t
+        LEFT JOIN t_task_student ts ON ts.rwid = t.id
+        LEFT JOIN t_task_tag st ON t.id = st.rwid AND st.del_flag = '0' <!-- AND st.qyid = #{qyid} -->
+        LEFT JOIN t_tag tt ON st.bqid = tt.id
+        <where>
+            <if test="mc != null  and mc != ''">AND t.mc like concat('%', #{mc}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                And t.id IN (
+                SELECT
+                st.rwid
+                FROM
+                t_task_tag st
+                WHERE
+                st.del_flag = '0' <!-- and st.qyid = #{qyid} -->
+                AND st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.rwid
+            <!--HAVING
+            count( st.rwid ) = #{params.tagsCount}-->
+            )
+            </if>
+            AND t.del_flag = '0'  AND  t.states = '99'  AND NOW() > t.task_send_time
+            AND ts.xyid = #{xyid} AND ts.del_flag = '0'
+            <if test="jd == 1">
+                <!-- 未完成 -->
+                and  (ts.jd->'$.rate' != 100 or ts.jd->'$.rate' is null)
+            </if>
+            <if test="jd == 2">
+                <!-- 将过期 -->
+                and to_days(t.task_end_time) - to_days(now())  &lt;= 3 and to_days(t.task_end_time) - to_days(now()) >0
+            </if>
+            <if test="jd == 3">
+                <!-- 已完成 -->
+                and  (ts.jd->'$.rate' = 100)
+            </if>
+        </where>
+        GROUP BY
+            t.id,
+            t.mc,
+            t.fmt,
+            t.task_begin_time,
+            t.task_end_time,rwjd,jd
+        ORDER BY
+        field(rwjd,'进行中','未开始','已完成','已结束')
+    </select>
+
+<select id="selectTTaskById" parameterType="Long" resultMap="TTaskResult">
+    select t.id,
+           t.mc,
+           t.ms,
+           t.fmt,
+           t.kfcd,
+           t.states,
+           t.task_begin_time,
+           t.task_end_time,
+           t.task_send_time,
+           t.create_time,
+           t.update_time,
+           ts.jd
+    from t_task t
+    LEFT JOIN t_task_student ts on ts.rwid = t.id and ts.xyid=#{xyid}
+    where t.id = #{id}
+</select>
+
+<select id="getTaskNumByXyid" resultType="integer">
+SELECT
+count(t.id) as 'taskNum'
+FROM t_task t
+LEFT JOIN t_task_student ts ON ts.rwid = t.id
+where
+t.del_flag = '0'
+AND  t.states = '99'
+AND NOW() > t.task_send_time
+and (ts.jd &gt;=0  and ts.jd &lt; 100 )
+and now() &lt; t.task_end_time
+AND ts.xyid =#{xyid} AND ts.del_flag = '0'
+
+</select>
+
+<select id="getTwoTask" resultType="Map">
+SELECT
+t.id,
+t.mc,
+t.fmt,
+ts.jd
+FROM
+    ( SELECT rwid,jd FROM t_task_student WHERE xyid = #{xyid} AND del_flag = '0' ) ts
+        INNER JOIN t_task t ON t.id = ts.rwid
+WHERE
+t.states = '99' and t.del_flag='0'
+AND now() > t.task_send_time
+ORDER BY
+t.task_end_time desc
+LIMIT #{num}
+</select>
+
+<!--    查询任务的标签列表-->
+    <select id="getTaskTags" resultType="Map">
+        SELECT
+            r.bqid id,
+            t.name,
+            count( r.bqid ) num
+        FROM
+            t_task_tag r
+                INNER JOIN t_tag t ON t.id = r.bqid
+        WHERE  r.del_flag = '0'
+          <!-- AND r.qyid = #{ qyid } -->
+        GROUP BY
+            t.id
+        ORDER BY
+            num DESC
+    </select>
+
+    <!--新首页 统计任务-->
+    <select id="getRwNotCompletedNum" resultType="int">
+        select count(1) as "num"
+        from t_task_student st
+        where xyid =#{xyid} and del_flag='0'
+        and  (jd->'$.rate' != 100 or jd->'$.rate' is null)
+          and EXISTS (select 1 from t_task t where t.id=st.rwid and t.del_flag=0)
+    </select>
+
+    <select id="getRwNum" resultType="int">
+        select count(1) as "num"
+        from t_task_student st
+        where xyid =#{xyid} and del_flag='0'
+          and EXISTS (select 1 from t_task t where t.id=st.rwid and t.del_flag=0)
+    </select>
+
+
+    <select id="getRwJgqNum" resultType="int">
+        select count(1)
+        from t_task t
+        left join t_task_student s on t.id = s.rwid
+        where
+            s.xyid = #{xyid}
+        and to_days(t.task_end_time) - to_days(now())  &lt;= 3 and to_days(t.task_end_time) - to_days(now()) >0
+          AND  t.del_flag = '0'  AND t.states='99'
+
+    </select>
+</mapper>

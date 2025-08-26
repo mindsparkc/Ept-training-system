@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.curriculum.mapper.TCurriculumContentMapper">
+    <resultMap type="TCurriculumContent" id="TCurriculumContentResult">
+        <result property="id"    column="id"    />
+        <result property="cid"    column="cid"    />
+        <result property="sid"    column="sid"    />
+        <result property="source_type"    column="source_type"    />
+        <result property="sort"    column="sort"    />
+        <result property="rate"    column="rate"    />
+        <result property="xs"    column="xs"    />
+        <result property="suffix"    column="suffix"    />
+        <result property="xsLabel"    column="xsLabel"    />
+    </resultMap>
+
+    <sql id="selectTCurriculumContentVo">
+        select id, cid, sid, source_type, sort from t_curriculum_content
+    </sql>
+    <insert id="insertTCurriculumContent" parameterType="TCurriculumContent" useGeneratedKeys="true" keyProperty="id">
+        insert into t_curriculum_content
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cid != null">cid,</if>
+            <if test="sid != null">sid,</if>
+            <if test="source_type != null">source_type,</if>
+            <if test="sort != null">sort,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cid != null">#{cid},</if>
+            <if test="sid != null">#{sid},</if>
+            <if test="source_type != null">#{source_type},</if>
+            <if test="sort != null">#{sort},</if>
+        </trim>
+    </insert>
+<!--目录-->
+    <select id="selectTurriculumContentByCid" resultType="tCurriculumContent">
+        SELECT
+            tc.id,
+            tc.sid,
+            tc.source_type,
+            tc.sort,
+            tcs.jd->'$.rate' rate,
+            c.suffix,
+            c.xs,
+            case when c.xs ='1' then '文档'
+                 when c.xs ='2' then '视频'
+                 when c.xs ='2' then '视频'
+                 when c.xs ='4' then '链接'
+                 when c.xs ='5' then '其他'
+            end xsLabel,
+            CASE
+                WHEN tc.source_type = 'kj' THEN c.mc
+                WHEN tc.source_type = 'st' THEN s.tg
+                WHEN tc.source_type = 'xtj' THEN x.name
+                END source_name
+        FROM
+            ( SELECT id, sid, source_type, sort FROM t_curriculum_content WHERE cid = #{id} ) tc
+                LEFT JOIN t_courseware c ON tc.sid = c.id
+                left join t_courseware_student tcs on tcs.kjid= c.id and tcs.xyid=#{xyid}
+                LEFT JOIN t_subject s ON tc.sid = s.id
+                LEFT JOIN paper x ON tc.sid = x.paper_id
+        WHERE
+            ( c.del_flag = '0' OR s.del_flag = '0' OR x.del_flag = '0')
+        ORDER BY
+            tc.sort
+    </select>
+
+
+</mapper>

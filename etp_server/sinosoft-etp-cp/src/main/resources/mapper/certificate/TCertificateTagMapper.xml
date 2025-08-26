@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.certificate.mapper.TCertificateTagWithCpMapper">
+    
+    <resultMap type="TCertificateTagWithCp" id="TCertificateTagResult">
+        <result property="id"    column="id"    />
+        <result property="zsid"    column="zsid"    />
+        <result property="bqid"    column="bqid"    />
+        <result property="qyid"    column="qyid"    />
+    </resultMap>
+
+    <sql id="selectTCertificateTagVo">
+        select id, zsid, bqid, qyid from t_certificate_tag
+    </sql>
+
+    <select id="selectTCertificateTagList" parameterType="TCertificateTagWithCp" resultMap="TCertificateTagResult">
+        <include refid="selectTCertificateTagVo"/>
+        <where>  
+            <if test="zsid != null "> and zsid = #{zsid}</if>
+            <if test="bqid != null "> and bqid = #{bqid}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+    
+    <select id="selectTCertificateTagById" parameterType="Long" resultMap="TCertificateTagResult">
+        <include refid="selectTCertificateTagVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertTCertificateTag" parameterType="TCertificateTagWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_certificate_tag
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="zsid != null">zsid,</if>
+            <if test="bqid != null">bqid,</if>
+            <if test="qyid != null">qyid,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="zsid != null">#{zsid},</if>
+            <if test="bqid != null">#{bqid},</if>
+            <if test="qyid != null">#{qyid},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTCertificateTag" parameterType="TCertificateTagWithCp">
+        update t_certificate_tag
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="zsid != null">zsid = #{zsid},</if>
+            <if test="bqid != null">bqid = #{bqid},</if>
+            <if test="qyid != null">qyid = #{qyid},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTCertificateTagById" parameterType="Long">
+        delete from t_certificate_tag where id = #{id}
+    </delete>
+
+    <delete id="deleteTCertificateTagByIds" parameterType="String">
+        delete from t_certificate_tag where zsid in
+        <foreach item="zsid" collection="array" open="(" separator="," close=")">
+            #{zsid}
+        </foreach>
+    </delete>
+</mapper>

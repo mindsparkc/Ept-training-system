@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.sign.mapper.TSignMapper">
+
+    <resultMap type="TSign" id="TSignResult">
+        <result property="id"    column="id"    />
+        <result property="hdmc"    column="hdmc"    />
+        <result property="hdfmc"    column="hdfmc"    />
+        <result property="hdfm"    column="hdfm"    />
+        <result property="hdnr"    column="hdnr"    />
+        <result property="kssj"    column="kssj"    />
+        <result property="jssj"    column="jssj"    />
+        <result property="kfcd"    column="kfcd"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTSignVo">
+        select ts.id, ts.hdmc, ts.hdfmc, ts.hdfm, ts.hdnr, ts.kssj, ts.jssj, ts.kfcd,
+               ts.del_flag, ts.create_by, ts.create_time, ts.update_by,
+               ts.update_time, ts.remark,ts.status,
+               CASE
+                   WHEN ts.STATUS = '-1' THEN
+                       '未开始'
+                   WHEN ts.STATUS = '0' THEN
+                       '进行中'
+                   ELSE '已结束'
+                   END AS 'statusLabel',
+               tss.sfbm,
+               CASE
+                   WHEN tss.sfbm = '1' THEN
+                        '已报名'
+                   ELSE '未报名'
+                   END AS 'joinStatus',
+               GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_sign ts
+        LEFT JOIN t_sign_tag tst ON ts.id = tst.hdid
+        LEFT JOIN t_tag tt ON tt.id = tst.bqid
+        LEFT JOIN t_sign_student tss ON tss.hdid = ts.id  and xyid = #{xyid}
+    </sql>
+
+    <select id="selectTSignList" parameterType="TSign" resultMap="TSignResult">
+        <include refid="selectTSignVo"/>
+        <where>
+            <if test="hdmc != null  and hdmc != ''"> and ts.hdmc like concat('%', #{hdmc}, '%')</if>
+            <if test="tags != null  and tags != ''">
+                AND ts.id IN (
+                SELECT
+                tst.hdid
+                FROM
+                t_sign_tag tst
+                WHERE
+                tst.del_flag = '0'
+                and tst.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                tst.hdid
+                <!-- HAVING
+                 count( tst.hdid ) = #{params.tagsCount} -->
+                 )
+             </if>
+             <if test="hdfmc != null  and hdfmc != ''"> and ts.hdfmc = #{hdfmc}</if>
+             <if test="hdnr != null  and hdnr != ''"> and ts.hdnr like concat('%', #{hdnr}, '%')</if>
+             <if test="kfcd != null  and kfcd != ''"> and ts.kfcd = #{kfcd}</if>
+             <if test="status != null  and status != ''"> and ts.status = #{status}</if>
+             and ts.del_flag = '0' and  (ts.kfcd = '0' or
+             ( ts.kfcd = '1'	and	tss.id is not  NULL))
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        GROUP BY ts.id,sfbm
+        order by FIELD(statusLabel,'进行中','未开始','已结束'), FIELD(joinStatus,'未报名','已报名'),ts.jssj asc,ts.kssj asc
+</select>
+
+<select id="selectTSignById" parameterType="Long" resultMap="TSignResult">
+select ts.id, ts.hdmc, ts.hdfmc, ts.hdfm, ts.hdnr, ts.kssj, ts.jssj, ts.kfcd,
+    ts.del_flag, ts.create_by, ts.create_time, ts.update_by,
+    ts.update_time, ts.remark,ts.status,
+    CASE
+        WHEN ts.STATUS = '-1' THEN
+            '未开始'
+        WHEN ts.STATUS = '0' THEN
+            '进行中'
+        ELSE '已结束'
+        END AS 'statusLabel',
+    IFNULL(tss.sfbm,0) sfbm,
+    CASE
+        WHEN tss.sfbm = '1' THEN
+            '已报名'
+        ELSE '未报名'
+        END AS 'joinStatus'
+from t_sign ts
+LEFT JOIN t_sign_student tss ON tss.hdid = ts.id and tss.xyid=#{xyid}
+where ts.id = #{id}
+</select>
+
+<select id="countJoinSignById" parameterType="Long" resultType="integer">
+select count(1) num
+from t_sign_student where hdid=#{id} and sfbm=1
+</select>
+<select id="selectTSignByIds" parameterType="String" resultMap="TSignResult">
+<include refid="selectTSignVo"/>
+where id in
+<foreach item="id" collection="array" open="(" separator="," close=")">
+ #{id}
+</foreach>
+</select>
+
+<insert id="insertTSign" parameterType="TSign" useGeneratedKeys="true" keyProperty="id">
+insert into t_sign
+<trim prefix="(" suffix=")" suffixOverrides=",">
+     <if test="hdmc != null and hdmc != ''">hdmc,</if>
+     <if test="hdfmc != null">hdfmc,</if>
+     <if test="hdfm != null and hdfm != ''">hdfm,</if>
+     <if test="hdnr != null and hdnr != ''">hdnr,</if>
+     <if test="kssj != null">kssj,</if>
+     <if test="jssj != null">jssj,</if>
+     <if test="kfcd != null">kfcd,</if>
+     <if test="delFlag != null">del_flag,</if>
+     <if test="createBy != null">create_by,</if>
+     <if test="createTime != null">create_time,</if>
+     <if test="updateBy != null">update_by,</if>
+     <if test="updateTime != null">update_time,</if>
+     <if test="remark != null">remark,</if>
+
+    <if test="createUserId != null">create_user_id,</if>
+    <if test="departmentId != null">department_id,</if>
+    <if test="tenantId != null">tenant_id,</if>
+    <if test="pubFlag != null">pub_flag,</if>
+</trim>
+<trim prefix="values (" suffix=")" suffixOverrides=",">
+     <if test="hdmc != null and hdmc != ''">#{hdmc},</if>
+     <if test="hdfmc != null">#{hdfmc},</if>
+     <if test="hdfm != null and hdfm != ''">#{hdfm},</if>
+     <if test="hdnr != null and hdnr != ''">#{hdnr},</if>
+     <if test="kssj != null">#{kssj},</if>
+     <if test="jssj != null">#{jssj},</if>
+     <if test="kfcd != null">#{kfcd},</if>
+     <if test="delFlag != null">#{delFlag},</if>
+     <if test="createBy != null">#{createBy},</if>
+     <if test="createTime != null">#{createTime},</if>
+     <if test="updateBy != null">#{updateBy},</if>
+     <if test="updateTime != null">#{updateTime},</if>
+     <if test="remark != null">#{remark},</if>
+
+    <if test="createUserId != null">#{createUserId},</if>
+    <if test="departmentId != null">#{departmentId},</if>
+    <if test="tenantId != null">#{tenantId},</if>
+    <if test="pubFlag != null">#{pubFlag},</if>
+</trim>
+</insert>
+
+<update id="updateTSign" parameterType="TSign">
+update t_sign_student
+set  sfbm = #{sfbm}
+where hdid = #{id} and xyid=#{xyid}
+</update>
+
+<update id="updateSignStatus"  parameterType="TSign">
+update t_sign set status = #{status}
+where id = #{id}
+</update>
+
+<delete id="deleteTSignById" parameterType="Long">
+update t_sign set del_flag = '1' where id = #{id}
+</delete>
+
+<delete id="deleteTSignByIds" parameterType="String">
+update t_sign set del_flag = '1' where id in
+<foreach item="id" collection="array" open="(" separator="," close=")">
+ #{id}
+</foreach>
+</delete>
+
+<!--    获取首页活动-->
+    <select id="getHomeActivite" parameterType="Long" resultType="Map">
+        SELECT
+            s.id,s.hdmc,s.kssj,s.jssj
+        FROM
+            t_sign s
+            left JOIN t_sign_student st ON s.id = st.hdid and st.xyid=#{xyid}
+        WHERE
+          s.del_flag = '0'
+          AND NOW() > s.kssj  and  s.jssj>NOW() and (st.sfbm='0' or st.sfbm is null)
+          and (s.kfcd = '0'
+          OR ( s.kfcd = 1 AND st.id IS NOT NULL  ))
+        order by s.jssj asc,s.kssj asc
+        limit 1
+    </select>
+</mapper>

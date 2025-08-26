@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.questionnaire.mapper.TQuestionnaireCompanyWithCpMapper">
+
+    <resultMap type="TQuestionnaireCompanyWithCp" id="TQuestionnaireCompanyResult">
+        <result property="id"    column="id"    />
+        <result property="wjid"    column="wjid"    />
+        <result property="qyid"    column="qyid"    />
+    </resultMap>
+
+    <sql id="selectTQuestionnaireCompanyVo">
+        select id, wjid, qyid from t_questionnaire_company
+    </sql>
+
+    <select id="selectTQuestionnaireCompanyList" parameterType="TQuestionnaireCompanyWithCp" resultMap="TQuestionnaireCompanyResult">
+        <include refid="selectTQuestionnaireCompanyVo"/>
+        <where>
+            <if test="wjid != null "> and wjid = #{wjid}</if>
+            <if test="qyid != null "> and qyid = #{qyid}</if>
+        </where>
+    </select>
+
+    <select id="selectTQuestionnaireCompanyById" parameterType="Long" resultMap="TQuestionnaireCompanyResult">
+        <include refid="selectTQuestionnaireCompanyVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTQuestionnaireCompany" parameterType="TQuestionnaireCompanyWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_questionnaire_company
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="wjid != null">wjid,</if>
+            <if test="qyid != null">qyid,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="wjid != null">#{wjid},</if>
+            <if test="qyid != null">#{qyid},</if>
+        </trim>
+    </insert>
+
+    <update id="updateTQuestionnaireCompany" parameterType="TQuestionnaireCompanyWithCp">
+        update t_questionnaire_company
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="wjid != null">wjid = #{wjid},</if>
+            <if test="qyid != null">qyid = #{qyid},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTQuestionnaireCompanyById" parameterType="Long">
+        delete from t_questionnaire_company where id = #{id}
+    </delete>
+
+    <delete id="deleteTQuestionnaireCompanyByIds" parameterType="String">
+        delete from t_questionnaire_company where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.testpaper.mapper.TTestpaperWithCpMapper">
+
+    <resultMap type="TTestpaperWithCp" id="TTestpaperResult">
+        <result property="id"    column="id"    />
+        <result property="sjmc"    column="sjmc"    />
+        <result property="zjcl"    column="zjcl"    />
+        <result property="fm"    column="fm"    />
+        <result property="fb"    column="fb"    />
+        <result property="tx"    column="tx"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+        <result property="categoryId" column="categoryId"/>
+        <result property="categoryName" column="categoryName"/>
+    </resultMap>
+
+    <sql id="selectTTestpaperVo">
+        select s.id, s.sjmc, s.zjcl, s.fm, s.fb, s.tx, s.del_flag, s.create_by,
+               s.create_time, s.update_by, s.update_time, s.remark ,
+               s.categoryId,
+               tg.name as categoryName,
+               GROUP_CONCAT(tt.name SEPARATOR ',') tags
+
+        from t_testpaper s
+        <!-- left join  t_testpaper_company c on s.id = c.sjid -->
+        <!-- 数据过滤 -->
+        <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+        left join t_testpaper_tag st on s.id = st.sjid
+        left join t_tag tt on st.bqid = tt.id
+        left join t_category tg on tg.id = s.categoryId
+    </sql>
+
+    <select id="selectTTestpaperList" parameterType="TTestpaperWithCp" resultMap="TTestpaperResult">
+        <include refid="selectTTestpaperVo"/>
+        <where>
+            <if test="sjmc != null  and sjmc != ''"> and s.sjmc like concat('%', #{sjmc}, '%')</if>
+            <if test="zjcl != null  and zjcl != ''"> and s.zjcl = #{zjcl}</if>
+            <if test="fb != null  and fb != ''"> and s.fb = #{fb}</if>
+            <if test="updateTime != null "> and s.update_time = #{updateTime}</if>
+            <if test="tags != null  and tags != ''">
+                AND s.id IN (
+                SELECT
+                t.sjid
+                FROM
+                t_testpaper_tag t
+                WHERE
+                t.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                t.sjid
+            <!--HAVING
+            count( t.sjid ) = #{params.tagsCount}-->
+            )
+            </if>
+            <if test="categoryId != null and categoryId != 1">
+                AND (s.categoryId = #{categoryId} OR
+                s.categoryId IN ( SELECT cy.id FROM t_category cy WHERE find_in_set(#{categoryId}, ancestors) ))
+            </if>
+        and s.del_flag ="0"
+        <!-- 数据范围过滤 -->
+            ${params.dataScope}
+        </where>
+        GROUP BY s.id
+        order by s.update_time desc
+    </select>
+
+    <select id="selectTTestpaperById" parameterType="Long" resultMap="TTestpaperResult">
+        <include refid="selectTTestpaperVo"/>
+        where s.id = #{id}
+    </select>
+
+    <insert id="insertTTestpaper" parameterType="TTestpaperWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_testpaper
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="sjmc != null">sjmc,</if>
+            <if test="zjcl != null">zjcl,</if>
+            <if test="fm != null">fm,</if>
+            <if test="fb != null">fb,</if>
+            <if test="tx != null">tx,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+            <if test="categoryId != null">categoryId,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="sjmc != null">#{sjmc},</if>
+            <if test="zjcl != null">#{zjcl},</if>
+            <if test="fm != null">#{fm},</if>
+            <if test="fb != null">#{fb},</if>
+            <if test="tx != null">#{tx},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="categoryId != null">#{categoryId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTTestpaper" parameterType="TTestpaperWithCp">
+        update t_testpaper
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="sjmc != null">sjmc = #{sjmc},</if>
+            <if test="zjcl != null">zjcl = #{zjcl},</if>
+            <if test="fm != null">fm = #{fm},</if>
+            <if test="fb != null">fb = #{fb},</if>
+            <if test="tx != null">tx = #{tx},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="categoryId != null">categoryId = #{categoryId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+<!--    <delete id="deleteTTestpaperById" parameterType="Long">-->
+<!--        delete from t_testpaper where id = #{id}-->
+<!--    </delete>-->
+
+<!--    <delete id="deleteTTestpaperByIds" parameterType="String">-->
+<!--        delete from t_testpaper where id in-->
+<!--        <foreach item="id" collection="array" open="(" separator="," close=")">-->
+<!--            #{id}-->
+<!--        </foreach>-->
+<!--    </delete>-->
+
+    <update id="deleteTTestpaperById"  parameterType="Long">
+        update  t_testpaper set del_flag = "1" where id = #{id}
+    </update>
+
+    <update id="deleteTTestpaperByIds" parameterType="String">
+        update  t_testpaper  set del_flag = "1" where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+    <update id="pushBack">
+        UPDATE t_testpaper SET fb = '0' WHERE id = #{id}
+    </update>
+
+    <select id="getExamOfStudentInfo" resultType="com.sinosoft.etp.cp.testpaper.domain.TTestpaperStudentWithCp">
+        select t.id,t.ksid,t.sjid,t.xyid,t.hand_time as handTime,t.hand_type as handType,t.da,t.score,t.rate,t.create_time as createTime,e.fsdj
+        from t_testpaper_student t left join sys_user s on t.xyid = s.user_id
+        left join sys_dept d on s.dept_id = d.dept_id left join t_examination e on t.ksid = e.id
+        where t.del_flag = '0' and t.hand_time is not null and t.score is not null and t.ksid=#{ksid} and d.dept_id = #{deptId}
+    </select>
+
+    <!--校验是否有同名的试卷-->
+    <select id="checkExistSJ"  resultMap="TTestpaperResult">
+        select t.id,t.sjmc
+        from
+        t_testpaper t
+        <!-- LEFT JOIN t_testpaper_company tc ON t.id = tc.sjid -->
+        <where>
+            t.sjmc = #{sjmc} and t.del_flag = '0'
+            <!-- and tc.qyid = #{qyid} -->
+        </where>
+        limit 1
+    </select>
+</mapper>

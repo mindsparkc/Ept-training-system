@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.user.exam.mapper.UserQuestionMapper">
+
+    <resultMap type="Question" id="QuestionResult">
+        <result property="quId"    column="qu_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="version"    column="version"    />
+        <result property="content"    column="content"    />
+        <result property="display"    column="display"    />
+        <result property="type"    column="type"    />
+        <result property="level"    column="level"    />
+        <result property="analysis"    column="analysis"    />
+        <result property="tarinFlag"    column="tarin_flag"    />
+        <result property="examFlag"    column="exam_flag"    />
+        <result property="status"    column="status"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="sort"    column="sort"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="answers"    column="answers"   typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+        <result property="children"    column="children"   typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+    </resultMap>
+
+    <resultMap type="UserPaperUnitItemQuestion" id="PaperUnitItemQuestionResult">
+        <result property="ruleId"    column="ruleId"    />
+        <result property="key"    column="key"    />
+        <result property="quId"    column="qu_id"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="version"    column="version"    />
+        <result property="content"    column="content"    />
+        <result property="display"    column="display"    />
+        <result property="type"    column="type"    />
+        <result property="level"    column="level"    />
+        <result property="analysis"    column="analysis"    />
+        <result property="tarinFlag"    column="tarin_flag"    />
+        <result property="examFlag"    column="exam_flag"    />
+        <result property="status"    column="status"    />
+        <result property="expireTime"    column="expire_time"    />
+        <result property="sort"    column="sort"    />
+        <result property="userId"    column="user_id"    />
+        <result property="deptId"    column="dept_id"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="answers"    column="answers"   typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+        <result property="children"    column="children"   typeHandler="cn.jkingtools.ibatis.type.JsonTypeHandler"  />
+    </resultMap>
+
+    <select id="selectPaperUnitItemQuestionResult" resultMap="PaperUnitItemQuestionResult">
+        ${value}
+    </select>
+
+    <sql id="selectQuestionVo">
+        select qu_id, parent_id, version, content, display, type, level, FLOOR(1 + RAND() * (10000 - 1 + 1)) as sort,
+               analysis, tarin_flag, exam_flag, status, expire_time, user_id, dept_id,
+               del_flag, create_by, create_time, update_by, update_time, remark ,answers, children
+        from question qu
+    </sql>
+
+    <select id="selectQuestionByIds" parameterType="String" resultMap="QuestionResult">
+        <include refid="selectQuestionVo"/>
+        where qu_id in
+        <foreach item="quId" collection="array" open="(" separator="," close=")">
+            #{quId}
+        </foreach>
+        and (del_flag="0" or del_flag is null)
+        order by create_time desc
+    </select>
+
+
+    <select id="selectQuestionById" parameterType="Long" resultMap="QuestionResult">
+        <include refid="selectQuestionVo"/>
+        where qu_id = #{quId} and (del_flag="0" or del_flag is null)
+    </select>
+
+    <!-- 根据规则 -->
+    <select id="selectQuestionByRule" parameterType="PaperUnit" resultMap="QuestionResult">
+        <foreach item="paperUnit" collection="list">
+            <foreach item="question" collection="paperUnit.questions">
+                <choose>
+                    <!-- 题目还是规则 - 只处理规则 （1选题组卷 2抽题组卷 3随机组卷） -->
+                    <when test="question.strategy == '3'">
+                        <foreach item="rule" collection="question.rule.rule" separator="union">
+                            <include refid="selectQuestionVo"/>
+                            <where>
+                                qu_id in (select qic.obj_id from question_inter_category qic, question_category qc
+                                    where qic.cat_id = qc.cat_id and (
+                                <foreach item="catId" collection="question.rule.catId" separator="union">
+                                    or qic.cat_id in #{catId} or find_in_set(qc.ancestors, #{catId})
+                                </foreach>
+                                    )
+                                    and level = #{rule.level}
+                                )
+                            </where>
+                            limit #{rule.count}*3
+                        </foreach>
+                    </when>
+                </choose>
+            </foreach>
+
+        </foreach>
+    </select>
+
+</mapper>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.user.exam.mapper.UserExamRecordMapper">
+
+    <resultMap type="UserExamRecord" id="ExamRecordResult">
+        <result property="recordId"    column="record_id"    />
+        <result property="examId"    column="exam_id"    />
+        <result property="name"    column="name"    />
+        <result property="totalScore"    column="total_score"    />
+        <result property="userScore"    column="user_score"    />
+        <result property="quCount"    column="qu_count"    />
+        <result property="quCorrect"    column="qu_correct"    />
+        <result property="startTime"    column="start_time"    />
+        <result property="endTime"    column="end_time"    />
+        <result property="logicEndTime"    column="logic_end_time"    />
+        <result property="handType"    column="hand_type"    />
+        <result property="doTime"    column="do_time"    />
+        <result property="status"    column="status"    />
+        <result property="userId"    column="user_id"    />
+        <result property="nickName"    column="nick_name"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectExamRecordVo">
+        select record_id, rc.exam_id, e.name,  total_score, user_score, qu_count, qu_correct, rc.start_time, rc.end_time,rc.logic_end_time,
+               hand_type, do_time, rc.status, rc.user_id, su.nick_name
+        from exam_record rc left join exam e  on rc.exam_id = e.exam_id
+                            left join sys_user su on rc.user_id = su.user_id
+    </sql>
+
+    <!-- 新增用户考试 -->
+    <insert id="">
+
+    </insert>
+
+    <!--  获取用户考试次数
+    <select id="selectUserExamRecordCount" parameterType="UserExamRecordReqQuery" resultType="Integer">
+        select count(1) from exam_record
+        <where>
+            <if test="examId != null  and examId != ''"> and rc.exam_id = #{examId}</if>
+            <if test="userId != null  and userId != ''"> and rc.user_id = #{userId}</if>
+            <if test="status != null  and status != ''"> and rc.status in
+                <foreach item="it" collection="status.split(',')" open="(" separator="," close=")">
+                    #{it}
+                </foreach>
+            </if>
+        </where>
+    </select> -->
+
+    <!-- 获取用户考试列表 -->
+    <select id="selectUserExamRecord" parameterType="UserExamRecordReqQuery" resultMap="ExamRecordResult">
+        <include refid="selectExamRecordVo"></include>
+        <where>
+            <if test="examId != null  and examId != ''"> and rc.exam_id = #{examId}</if>
+            <if test="userId != null  and userId != ''"> and rc.user_id = #{userId}</if>
+            <if test="name != null  and name != ''"> and e.name like concat('%', #{name}, '%')</if>
+            <if test="status != null  and status != ''"> and rc.status in
+                <foreach item="it" collection="status.split(',')" open="(" separator="," close=")">
+                    #{it}
+                </foreach>
+            </if>
+            <if test="rangStartTime != null"> and rc.start_time &gt;= #{rangStartTime}</if>
+            <if test="rageEndTime != null"> and rc.start_time &lt;= #{rageEndTime}</if>
+            <!-- 数据权限控制 -->
+            <if test="params.etpDataScope != null and params.etpDataScope != ''">${params.etpDataScope}</if>
+        </where>
+        order by rc.start_time desc
+    </select>
+
+    <select id="selectExamRecordById" resultMap="ExamRecordResult">
+        <include refid="selectExamRecordVo"/>
+        where rc.record_id = #{recordId}
+        <if test="userId != null"> and rc.user_id = #{userId}</if>
+    </select>
+
+    <insert id="insertExamRecord" parameterType="UserExamRecord">
+        insert into exam_record
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="recordId != null">record_id,</if>
+            <if test="examId != null">exam_id,</if>
+            <if test="totalScore != null">total_score,</if>
+            <if test="userScore != null">user_score,</if>
+            <if test="quCount != null">qu_count,</if>
+            <if test="quCorrect != null">qu_correct,</if>
+            <if test="startTime != null">start_time,</if>
+            <if test="endTime != null">end_time,</if>
+            <if test="logicEndTime != null">logic_end_time,</if>
+            <if test="handType != null">hand_type,</if>
+            <if test="doTime != null">do_time,</if>
+            <if test="status != null">status,</if>
+            <if test="userId != null">user_id,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null and createBy != ''">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null and updateBy != ''">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null and remark != ''">remark,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="recordId != null">#{recordId},</if>
+            <if test="examId != null">#{examId},</if>
+            <if test="totalScore != null">#{totalScore},</if>
+            <if test="userScore != null">#{userScore},</if>
+            <if test="quCount != null">#{quCount},</if>
+            <if test="quCorrect != null">#{quCorrect},</if>
+            <if test="startTime != null">#{startTime},</if>
+            <if test="endTime != null">#{endTime},</if>
+            <if test="logicEndTime != null">#{logicEndTime},</if>
+            <if test="handType != null">#{handType},</if>
+            <if test="doTime != null">#{doTime},</if>
+            <if test="status != null">#{status},</if>
+            <if test="userId != null">#{userId},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null and createBy != ''">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null and updateBy != ''">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null and remark != ''">#{remark},</if>
+        </trim>
+    </insert>
+
+    <update id="updateExamRecord" parameterType="UserExamRecord">
+        update exam_record
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="examId != null">exam_id = #{examId},</if>
+            <if test="totalScore != null">total_score = #{totalScore},</if>
+            <if test="userScore != null">user_score = #{userScore},</if>
+            <if test="quCount != null">qu_count = #{quCount},</if>
+            <if test="quCorrect != null">qu_correct = #{quCorrect},</if>
+            <if test="startTime != null">start_time = #{startTime},</if>
+            <if test="endTime != null">end_time = #{endTime},</if>
+            <if test="logicEndTime != null">logic_end_time=#{logicEndTime},</if>
+            <if test="handType != null">hand_type = #{handType},</if>
+            <if test="doTime != null">do_time = #{doTime},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="updateBy != null and updateBy != ''">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null and remark != ''">remark = #{remark},</if>
+        </trim>
+        where record_id = #{recordId}
+    </update>
+
+    <select id="selectUserExamRecordCountByExamIds" parameterType="String" resultType="java.lang.Integer">
+        select count(1) from exam_record
+        where exam_id in
+        <foreach item="examId" collection="array" open="(" separator="," close=")">
+            #{examId}
+        </foreach>
+    </select>
+</mapper>

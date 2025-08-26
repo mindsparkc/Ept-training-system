@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.examination.mapper.TExaminationMapper">
+    <resultMap type="TExamination" id="TExaminationResult">
+        <result property="id"    column="id"    />
+        <result property="mc"    column="mc"    />
+        <result property="ms"    column="ms"    />
+        <result property="fm"    column="fm"    />
+        <result property="fb"    column="fb"    />
+        <result property="kslj"    column="kslj"    />
+        <result property="kfcd"    column="kfcd"    />
+        <result property="sjid"    column="sjid"    />
+        <result property="kskssj"    column="kskssj"    />
+        <result property="ksjssj"    column="ksjssj"    />
+        <result property="djsc"    column="djsc"    />
+        <result property="dtcs"    column="dtcs"    />
+        <result property="fsdj"    column="fsdj"    />
+        <result property="zfs"    column="zfs"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <result property="tags"    column="tags"    />
+        <result property="showScoreTime"    column="show_score_time"    />
+        <result property="noactionTimeout"    column="noaction_timeout"    />
+        <result property="turnThreshold"    column="turn_threshold"    />
+        <result property="stgs"    column="stgs"    />
+    </resultMap>
+
+    <sql id="selectTExaminationVo">
+        select e.id, e.mc, e.ms, e.fm, e.fb, e.kslj, e.kfcd, e.sjid, e.kskssj, e.ksjssj, e.djsc,
+        e.dtcs, e.fsdj, e.zfs, e.del_flag, e.create_by, e.create_time, e.update_by, e.update_time, e.remark ,es.jd,
+        GROUP_CONCAT(tt.name SEPARATOR ',') tags
+        from t_examination e
+        <!-- left join  t_examination_company c on e.id = c.ksid -->
+        <!-- 数据过滤 -->
+        <!-- left join  sys_dept d on c.qyid = d.dept_id -->
+        left join t_examination_tag st on e.id = st.ksid
+        LEFT JOIN t_examination_student es on es.ksid = e.id
+        left join t_tag tt on st.bqid = tt.id
+    </sql>
+
+    <select id="selectTExaminationList" parameterType="TExamination" resultMap="TExaminationResult">
+        SELECT
+            e.id,
+            e.mc,
+            e.ms,
+            e.fm,
+            e.sjid,
+            e.kskssj,
+            e.ksjssj,
+            e.djsc,
+            e.zfs,
+            e.dtcs,
+            es.xyid,
+        sum(tp.value) as stgs,
+        GROUP_CONCAT(distinct tt.name SEPARATOR ',') tags,
+        case
+            when  now() > e.ksjssj then '已结束'
+            when e.kskssj > now() then '未开始'
+            else '进行中'
+        end ksjd
+        FROM t_examination e
+        LEFT JOIN t_examination_student es ON es.ksid = e.id AND es.xyid = #{xyid} AND  es.del_flag = '0'
+        left join t_examination_tag st on e.id = st.ksid <!-- AND st.qyid = #{qyid} -->
+        left join t_tag tt on st.bqid = tt.id
+        left join t_testpaper ttp on ttp.id = e.sjid ,JSON_TABLE(ttp.tx, '$[*]' COLUMNS (value INTEGER PATH '$.value')) tp
+        <where>
+            <if test="mc != null  and mc != ''"> and e.mc like concat('%',#{mc,jdbcType=VARCHAR},'%')</if>
+            <if test="kskssj != null"> and e.kskssj  <![CDATA[ >= ]]> #{kskssj} </if>
+            <if test="ksjssj != null"> and e.ksjssj  <![CDATA[ <= ]]> #{ksjssj} </if>
+            AND e.fb='99'
+            <if test="tags != null  and tags != ''">
+                AND e.id IN (
+                SELECT
+                st.ksid
+                FROM
+                t_examination_tag st
+                WHERE
+                <!-- st.qyid = #{qyid} and -->
+                st.bqid IN
+                <foreach item="item" index="index" collection="params.tags"  open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+                GROUP BY
+                st.ksid
+                <!--HAVING
+                count( st.ksid ) = #{params.tagsCount}-->
+                )
+            </if>
+            AND  e.del_flag = '0'  and now() > e.push_time
+            <if test="ksjd == 1">
+              <!--将结束 -->
+              and  to_days(e.ksjssj) - to_days(now())  &lt;= 3  and  to_days(e.ksjssj) - to_days(now())>0
+            </if>
+            <if test="ksjd == 2">
+                <!--将开始 -->
+              and  to_days(e.kskssj) - to_days(now())  &lt;= 3 and to_days(e.kskssj) - to_days(now()) >0
+            </if>
+       and  (e.kfcd = '0' or
+       ( e.kfcd = '1'	and	es.id is not  NULL))
+   </where>
+   group by e.id,ttp.tx
+   ORDER BY
+       field(ksjd,'进行中','未开始','已结束')
+</select>
+
+<!--    查询考试详情-->
+    <select id="selectTExaminationById" parameterType="Long" resultType="com.sinosoft.etp.up.examination.domain.TExamination">
+        SELECT
+            e.id,
+            e.mc,
+            e.ms,
+            e.sjid,
+            e.djsc,
+            e.fsdj,
+            e.zfs,
+            e.kskssj,
+            e.ksjssj,
+            e.djsc,
+            e.dtcs,
+            e.noaction_timeout as noactionTimeout,
+            e.turn_threshold as turnThreshold,
+            e.show_score_time as showScoreTime,
+            case when t.zjcl='0' then '自选题组卷'
+                 when t.zjcl='1' then '随机选题组卷'
+                 else '随机生成考卷'
+                end as zjcl,
+            t.sjmc,
+            t.tx,
+            GROUP_CONCAT( tt.NAME SEPARATOR ',' ) tags
+        FROM
+            t_examination e
+                join t_testpaper t on t.id = e.sjid
+                LEFT JOIN t_examination_tag st ON e.id = st.ksid AND st.del_flag = '0' <!-- AND st.qyid = #{qyid} -->
+                LEFT JOIN t_tag tt ON st.bqid = tt.id
+        WHERE
+            e.id = #{id}  AND e.del_flag = '0'
+
+        GROUP BY
+            e.id
+    </select>
+
+    <select id="getExaminationNum" resultType="integer">
+        SELECT
+        count(e.id) as 'examNum'
+
+        FROM t_examination e
+        LEFT JOIN t_examination_student es ON es.ksid = e.id
+        where
+          e.del_flag = '0'
+          AND e.fb='99'
+          and ( e.kskssj > now() or (now()>e.kskssj and now() &lt; e.ksjssj) )
+          AND  es.del_flag = '0'
+          AND es.xyid = #{xyid}
+    </select>
+    <select id="selectTExaminationByKSID" resultMap="TExaminationResult">
+        SELECT
+            e.id,
+            e.mc,
+            e.ms,
+            e.sjid,
+            e.djsc,
+            e.dtcs,
+            e.fsdj,
+            e.zfs,
+            e.kskssj,
+            e.ksjssj,
+            t.zjcl
+        FROM
+            t_examination e
+            join t_testpaper t on t.id = e.sjid
+        WHERE
+            e.id = #{id}  AND e.del_flag = '0'
+    </select>
+    <select id="getGkExam" resultType="java.lang.Integer">
+        select count(1) from t_examination a where a.id = #{id} and a.kfcd = '0' and a.kskssj &lt; now() and a.ksjssj &gt; now();
+    </select>
+    <select id="getExamByStudent" resultType="java.lang.Integer">
+        select count(1) from t_examination a left join t_examination_student b on a.id = b.ksid
+        where a.id = #{id} and b.xyid = #{xyid} and a.kskssj &lt; now() and a.ksjssj &gt; now();
+    </select>
+
+    <!--新首页考试统计-->
+    <!--将开始-->
+    <select id="getExamJksNum" resultType="int">
+        select count(1)
+        from t_examination t
+        left join t_examination_student s on t.id = s.ksid  and s.xyid = #{xyid}
+        where
+          to_days(t.kskssj) - to_days(now())  &lt;= 3 and to_days(t.kskssj) - to_days(now()) >0
+          AND  t.del_flag = '0'  and now() > t.push_time AND t.fb='99'
+          and  (t.kfcd = '0' or
+                ( t.kfcd = '1'	and	s.id is not  NULL))
+    </select>
+    <!--将结束-->
+    <select id="getExamJjsNum" resultType="int">
+        select count(1)
+        from t_examination t
+        left join t_examination_student s on t.id = s.ksid and s.xyid = #{xyid}
+        where
+            to_days(t.ksjssj) - to_days(now())  &lt;= 3  and  to_days(t.ksjssj) - to_days(now())>0
+          AND  t.del_flag = '0'  and now() > t.push_time AND t.fb='99'
+          and  (t.kfcd = '0' or
+                ( t.kfcd = '1'	and	s.id is not  NULL))
+    </select>
+</mapper>

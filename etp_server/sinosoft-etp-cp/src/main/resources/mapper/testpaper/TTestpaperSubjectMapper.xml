@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.cp.testpaper.mapper.TTestpaperSubjectWithCpMapper">
+
+    <resultMap type="TTestpaperSubjectWithCp" id="TTestpaperSubjectResult">
+        <result property="id"    column="id"    />
+        <result property="tkid"    column="tkid"    />
+        <result property="sjid"    column="sjid"    />
+        <result property="sort"    column="sort"    />
+        <result property="type"    column="type"    />
+        <result property="score"    column="score"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTTestpaperSubjectVo">
+        select id, tkid, sjid, sort, type, score, del_flag, create_by, create_time, update_by, update_time, remark from t_testpaper_subject
+    </sql>
+
+    <select id="selectTTestpaperSubjectList" parameterType="TTestpaperSubjectWithCp" resultMap="TTestpaperSubjectResult">
+        <include refid="selectTTestpaperSubjectVo"/>
+        <where>
+            <if test="tkid != null "> and tkid = #{tkid}</if>
+            <if test="sjid != null "> and sjid = #{sjid}</if>
+            <if test="sort != null "> and sort = #{sort}</if>
+            <if test="type != null  and type != ''"> and type = #{type}</if>
+            <if test="score != null  and score != ''"> and score = #{score}</if>
+        </where>
+    </select>
+
+    <select id="selectTTestpaperSubjectById" parameterType="Long" resultMap="TTestpaperSubjectResult">
+        <include refid="selectTTestpaperSubjectVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertTTestpaperSubject" parameterType="TTestpaperSubjectWithCp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_testpaper_subject
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tkid != null">tkid,</if>
+            <if test="sjid != null">sjid,</if>
+            <if test="sort != null">sort,</if>
+            <if test="type != null">type,</if>
+            <if test="score != null">score,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tkid != null">#{tkid},</if>
+            <if test="sjid != null">#{sjid},</if>
+            <if test="sort != null">#{sort},</if>
+            <if test="type != null">#{type},</if>
+            <if test="score != null">#{score},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <insert id="insertTTestpaperSubjects">
+        insert into t_testpaper_subject
+            (tkid,
+             sjid,
+             sort,
+             type,
+             score,
+             create_by,
+             create_time,
+             update_by,
+             update_time,
+             remark)
+            values
+        <foreach collection="list"  item="param" index="index" separator=",">
+            ( #{param.tkid},
+              #{param.sjid},
+              #{param.sort},
+              #{param.type},
+              #{param.score},
+              #{param.createBy},
+              #{param.createTime},
+              #{param.updateBy},
+              #{param.updateTime},
+              #{param.remark}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateTTestpaperSubject" parameterType="TTestpaperSubjectWithCp">
+        update t_testpaper_subject
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tkid != null">tkid = #{tkid},</if>
+            <if test="sjid != null">sjid = #{sjid},</if>
+            <if test="sort != null">sort = #{sort},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="score != null">score = #{score},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="updateScore">
+        update t_testpaper_subject
+        set score=#{score}
+        where sjid = #{sjid} and type=#{type} and del_flag = '0'
+    </update>
+
+    <delete id="deleteTTestpaperSubjectById" parameterType="Long">
+        delete from t_testpaper_subject where id = #{id}
+    </delete>
+
+    <delete id="deleteTTestpaperSubjectByIds" parameterType="String">
+        delete from t_testpaper_subject where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <update id="deleteTestpaperSubjectBySjid" parameterType="Long">
+        <!--update t_testpaper_subject
+        set del_flag = "1" where sjid=#{sjid}-->
+        DELETE FROM t_testpaper_subject where sjid = #{sjid}
+    </update>
+
+    <select id="getSubjectByPaper" resultType="Map">
+        select t.tkid, t.sjid, t.sort, t.type, t.score ,
+               s.id , s.tg, s.lx, s.xx, s.da, s.jx, s.sflx, s.sfks,s.level
+        from t_testpaper_subject t
+        join t_subject s on t.tkid = s.id
+        where t.sjid = #{sjid} and t.del_flag = '0'
+        order by t.type asc, t.sort asc
+    </select>
+
+    <select id="getPaperSubjectTags" resultType="Map">
+        SELECT
+            distinct(tt.name),
+                    t.type
+        FROM
+            t_testpaper_subject t
+                LEFT JOIN t_subject_tag s ON t.tkid = s.tkid
+                LEFT JOIN t_tag tt on s.bqid = tt.id
+
+        WHERE
+          t.sjid = #{sjid}
+          and t.del_flag = '0'
+          and tt.name is not null
+    </select>
+
+    <select id="selectScoreByType"  resultType="map">
+        select type,score
+        from t_testpaper_subject
+        where sjid = #{sjid} and del_flag = '0'
+        group by type,score
+    </select>
+
+    <update id="updateDa" parameterType="String">
+        update t_testpaper_student set da = JSON_SET(da, #{url},#{val}) where id =#{id};
+    </update>
+
+    <update id="updatePjzt" parameterType="String">
+        update t_testpaper_student set pjzt = '1',pj_time = now(),pj_teacher = #{userName} where id =#{id};
+    </update>
+
+    <update id="updateDaScore" parameterType="String">
+        update t_testpaper_student set da = JSON_SET(da,#{url},#{score}) where id =#{id};
+    </update>
+
+    <select id="getScore" resultType="string">
+        select json_extract(da,"$.detail.score") as score from t_testpaper_student where id = #{id}
+    </select>
+
+</mapper>

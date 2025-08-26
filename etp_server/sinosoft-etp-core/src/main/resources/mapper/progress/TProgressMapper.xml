@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.common.progress.mapper.ProgressMapper">
+
+
+
+<!--    课程进度信息-->
+    <select id="getRateByXyid" resultType="Map">
+        select sum(jd->'$.rate') rate,count(jd->'$.rate') completed
+        from t_courseware_student
+        where  xyid =#{xyid} and kjid in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+<!--   任务进度信息-->
+    <select id="getTaskProgress" resultType="Map">
+        select
+           sum(IFNULL(tcs.jd->'$.rate',0))/(count(1)*100) rate,
+           count(tcs.jd->'$.rate') completed
+           from t_task_content tt
+           left join t_curriculum_content 	tc on tc.cid = tt.sid and tc.source_type ='kj'
+           left join t_courseware_student tcs on tcs.kjid = tc.sid and tcs.xyid = #{xyid}
+        where tt.rwid=#{rwid} and tt.source_type ='kc'
+    </select>
+
+
+
+<!--    获取课程进度-->
+    <select id="getKcProgress" resultType="Map">
+        SELECT sum(IFNULL( tcs.jd -> '$.rate',0) )/( count( 1 )*100) rate,
+               count( tcs.jd -> '$.rate' ) completed
+        FROM
+            t_curriculum_content tc
+                LEFT JOIN t_courseware_student tcs ON tc.sid = tcs.kjid and tcs.xyid = #{xyid}
+        WHERE
+            tc.cid = #{kcid}
+          AND tc.source_type = 'kj'
+
+    </select>
+
+    <!--    查询包含某个课件的课程-->
+    <select id="getKcContainsKj" resultType="Map">
+        select cs.kcid,IFNULL(cs.jd->'$.rate',0) as rate
+        from t_curriculum_student cs
+                 join t_curriculum_content tc on cs.kcid=tc.cid and tc.source_type='kj'
+        where cs.xyid = #{xyid} and tc.sid = #{kjid}
+
+    </select>
+
+    <select id="getTaskContainsKj" resultType="Map">
+        select ts.rwid,IFNULL(ts.jd->'$.rate',0) as rate
+        from t_task_student ts
+                 join t_task_content tc on ts.rwid=tc.rwid and tc.source_type='kc'
+                 left join t_curriculum_content tcc on tcc.cid = tc.sid
+        where ts.xyid = #{xyid} and tcc.sid =#{kjid}
+    </select>
+
+    <!--    更新课程进度-->
+    <update id="updateKcProgress">
+        update t_curriculum_student set jd = JSON_SET(jd, "$.rate",#{rate},"$.time",#{time},"$.completed",#{completed})
+        where kcid = #{kcid} and xyid=#{xyid}
+    </update>
+<!--    更新任务进度-->
+    <update id="updateTaskProgress">
+        update t_task_student set jd = JSON_SET(jd,"$.rate",#{rate},"$.time",#{time},"$.completed",#{completed})
+        where rwid = #{rwid} and xyid=#{xyid}
+    </update>
+</mapper>

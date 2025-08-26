@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.app.mapper.TAppMapper">
+
+    <resultMap type="TApp" id="TAppResult">
+        <result property="id"    column="id"    />
+        <result property="appCode" column="app_code" />
+        <result property="appName"    column="app_name"    />
+        <result property="appDescribe"    column="app_describe"    />
+        <result property="appIcon"    column="app_icon"    />
+        <result property="platform"    column="platform"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectTAppVo">
+        select id, app_code, app_name, app_describe, app_icon, platform, del_flag, create_time, create_by, update_by, update_time, remark from t_app
+    </sql>
+
+    <select id="selectTAppList" parameterType="TApp" resultMap="TAppResult">
+        <include refid="selectTAppVo"/>
+        <where>
+            del_flag = '0'
+            <if test="appName != null  and appName != ''"> and app_name like concat('%', #{appName}, '%')</if>
+            <if test="appDescribe != null  and appDescribe != ''"> and app_describe like concat('%', #{appDescribe}, '%')</if>
+            <if test="platform != null  and platform != ''"> and platform = #{platform}</if>
+        </where>
+    </select>
+
+    <select id="selectTAppById" parameterType="Long" resultMap="TAppResult">
+        <include refid="selectTAppVo"/>
+        where id = #{id} and del_flag = '0'
+    </select>
+    <select id="selectAppCode" resultType="java.lang.Integer">
+        select count(1) from t_app where app_code = #{appCode} and del_flag = '0'
+    </select>
+    <select id="selectVersionCode" resultType="java.lang.Integer">
+        select count(1) from t_app_version tv left join t_app t on tv.app_id = t.id where t.id=#{id} and tv.version_code = #{versionCode}
+    </select>
+
+    <insert id="insertTApp" parameterType="TApp" useGeneratedKeys="true" keyProperty="id">
+        insert into t_app
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="appCode != null">app_code,</if>
+            <if test="appName != null">app_name,</if>
+            <if test="appDescribe != null">app_describe,</if>
+            <if test="appIcon != null">app_icon,</if>
+            <if test="platform != null">platform,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="appCode != null">#{appCode},</if>
+            <if test="appName != null">#{appName},</if>
+            <if test="appDescribe != null">#{appDescribe},</if>
+            <if test="appIcon != null">#{appIcon},</if>
+            <if test="platform != null">#{platform},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTApp" parameterType="TApp">
+        update t_app
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="appCode != null">app_code = #{appCode},</if>
+            <if test="appName != null">app_name = #{appName},</if>
+            <if test="appDescribe != null">app_describe = #{appDescribe},</if>
+            <if test="appIcon != null">app_icon = #{appIcon},</if>
+            <if test="platform != null">platform = #{platform},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTAppById" parameterType="Long">
+        <!--delete from t_app where id = #{id}-->
+        update t_app set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTAppByIds" parameterType="String">
+        <!--delete from t_app where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>-->
+        update t_app set del_flag = '1' where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

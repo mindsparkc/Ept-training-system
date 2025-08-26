@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.questionnaire.mapper.TQuestionnaireStudentMapper">
+
+    <resultMap type="TQuestionnaireStudent" id="TQuestionnaireStudentResult">
+        <result property="id"    column="id"    />
+        <result property="wjid"    column="wjid"    />
+        <result property="wjnr"    column="wjnr"    />
+        <result property="xyid"    column="xyid"    />
+    </resultMap>
+
+    <sql id="selectTQuestionnaireStudentVo">
+        select id, wjid, wjnr, xyid from t_questionnaire_student
+    </sql>
+
+    <select id="selectTQuestionnaireStudentList" parameterType="TQuestionnaireStudent" resultMap="TQuestionnaireStudentResult">
+        <include refid="selectTQuestionnaireStudentVo"/>
+        <where>
+            <if test="wjid != null "> and wjid = #{wjid}</if>
+            <if test="wjnr != null  and wjnr != ''"> and wjnr = #{wjnr}</if>
+            <if test="xyid != null "> and xyid = #{xyid}</if>
+        </where>
+    </select>
+
+    <select id="selectTQuestionnaireStudentById" parameterType="Long" resultMap="TQuestionnaireStudentResult">
+        <include refid="selectTQuestionnaireStudentVo"/>
+        where id = #{id}
+    </select>
+
+    <select id="selectTQuestionnaireStudentByWjid" parameterType="Long" resultMap="TQuestionnaireStudentResult">
+        <include refid="selectTQuestionnaireStudentVo"/>
+        where wjid = #{wjid}
+    </select>
+
+    <insert id="insertTQuestionnaireStudent" parameterType="TQuestionnaireStudent" useGeneratedKeys="true" keyProperty="id">
+        insert into t_questionnaire_student
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="wjid != null">wjid,</if>
+            <if test="wjnr != null">wjnr,</if>
+            <if test="xyid != null">xyid,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="wjid != null">#{wjid},</if>
+            <if test="wjnr != null">#{wjnr},</if>
+            <if test="xyid != null">#{xyid},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+<!--    <update id="updateTQuestionnaireStudent" parameterType="TQuestionnaireStudent">-->
+<!--        update t_questionnaire_student-->
+<!--        <trim prefix="SET" suffixOverrides=",">-->
+<!--            <if test="wjid != null">wjid = #{wjid},</if>-->
+<!--            <if test="wjnr != null">wjnr = #{wjnr},</if>-->
+<!--            <if test="xyid != null">xyid = #{xyid},</if>-->
+<!--        </trim>-->
+<!--        where id = #{id}-->
+<!--    </update>-->
+
+    <update id="updateTQuestionnaireStudent" parameterType="TQuestionnaireStudent">
+        update t_questionnaire_student
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="wjnr != null">wjnr = #{wjnr},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where wjid = #{wjid} and xyid = #{xyid}
+    </update>
+
+    <delete id="deleteTQuestionnaireStudentById" parameterType="Long">
+        delete from t_questionnaire_student where id = #{id}
+    </delete>
+
+    <delete id="deleteTQuestionnaireStudentByIds" parameterType="String">
+        delete from t_questionnaire_student where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

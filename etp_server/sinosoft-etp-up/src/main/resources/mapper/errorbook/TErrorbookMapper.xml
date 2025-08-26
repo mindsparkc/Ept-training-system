@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sinosoft.etp.up.errorbook.mapper.TErrorbookMapper">
+
+    <resultMap type="TErrorbook" id="TErrorbookResult">
+        <result property="id"    column="id"    />
+        <result property="stid"    column="stid"    />
+        <result property="kcid"    column="kcid"    />
+        <result property="ksid"    column="ksid"    />
+        <result property="xyid"    column="xyid"    />
+        <result property="tg"    column="tg"    />
+        <result property="xx"    column="xx"    />
+        <result property="stlx"    column="stlx"    />
+        <result property="da"    column="da"    />
+        <result property="answered"    column="answered"    />
+        <result property="jx"    column="jx"    />
+        <result property="ctlx"    column="ctlx"    />
+        <result property="remake"    column="remake"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+    </resultMap>
+
+    <sql id="selectTErrorbookVo">
+        select id, stid, kcid, ksid, xyid, tg, xx, stlx, da, answered, jx, ctlx, remake, del_flag, create_by, create_time, update_by, update_time from t_errorbook
+    </sql>
+
+    <select id="selectTErrorbookList" parameterType="TErrorbook" resultMap="TErrorbookResult">
+        <include refid="selectTErrorbookVo"/>
+        <where>
+        and del_flag = '0'
+            <if test="tg != null  and tg != ''"> and tg like concat('%', #{tg}, '%')</if>
+            <if test="stlx != null  and stlx != ''"> and stlx = #{stlx}</if>
+            <if test="ctlx != null  and ctlx != ''"> and ctlx = #{ctlx}</if>
+        </where>
+        order by update_time desc
+    </select>
+
+    <select id="selectTErrorbookById" parameterType="Long" resultMap="TErrorbookResult">
+        <include refid="selectTErrorbookVo"/>
+        where id = #{id}
+    </select>
+    <select id="selectTErrorbookByKs" parameterType="Long" resultType="long">
+        select id from t_errorbook where  stid = #{stid} and xyid = #{xyid} and del_flag = '0'
+        <if test="ksid != null  and ksid != ''"> and ksid = #{ksid}</if>
+        <if test="kcid != null  and kcid != ''"> and kcid = #{kcid}</if>
+    </select>
+
+    <insert id="insertTErrorbook" parameterType="TErrorbook">
+        insert into t_errorbook
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="stid != null">stid,</if>
+            <if test="kcid != null">kcid,</if>
+            <if test="ksid != null">ksid,</if>
+            <if test="xyid != null">xyid,</if>
+            <if test="tg != null">tg,</if>
+            <if test="xx != null">xx,</if>
+            <if test="stlx != null">stlx,</if>
+            <if test="da != null">da,</if>
+            <if test="answered != null">answered,</if>
+            <if test="jx != null">jx,</if>
+            <if test="ctlx != null">ctlx,</if>
+            <if test="remake != null">remake,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="stid != null">#{stid},</if>
+            <if test="kcid != null">#{kcid},</if>
+            <if test="ksid != null">#{ksid},</if>
+            <if test="xyid != null">#{xyid},</if>
+            <if test="tg != null">#{tg},</if>
+            <if test="xx != null">#{xx},</if>
+            <if test="stlx != null">#{stlx},</if>
+            <if test="da != null">#{da},</if>
+            <if test="answered != null">#{answered},</if>
+            <if test="jx != null">#{jx},</if>
+            <if test="ctlx != null">#{ctlx},</if>
+            <if test="remake != null">#{remake},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateTErrorbook" parameterType="TErrorbook">
+        update t_errorbook
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="stid != null">stid = #{stid},</if>
+            <if test="kcid != null">kcid = #{kcid},</if>
+            <if test="ksid != null">ksid = #{ksid},</if>
+            <if test="xyid != null">xyid = #{xyid},</if>
+            <if test="tg != null">tg = #{tg},</if>
+            <if test="xx != null">xx = #{xx},</if>
+            <if test="stlx != null">stlx = #{stlx},</if>
+            <if test="da != null">da = #{da},</if>
+            <if test="answered != null">answered = #{answered},</if>
+            <if test="jx != null">jx = #{jx},</if>
+            <if test="ctlx != null">ctlx = #{ctlx},</if>
+            <if test="remake != null">remake = #{remake},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteTErrorbookById" parameterType="Long">
+        update t_errorbook set del_flag = '1' where id = #{id}
+    </delete>
+
+    <delete id="deleteTErrorbookByIds" parameterType="String">
+        delete from t_errorbook where id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
