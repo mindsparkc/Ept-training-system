@@ -74,7 +74,7 @@ java -classpath sinosoft-license.jar com.sinosoft.license.tools.CreateAuthCode
 │       └── sql                                        // 
 ```
 
-## 数据权限改造
+## 多租户及数据权限改造
 ```
 数据权限控制逻辑：
 1、在登录时
@@ -400,7 +400,7 @@ API接口列表：
 ```
 
 
-## 学员端API数据权限改造
+## 学员端API多租户及数据权限改造
 ```
 │────── ***首页***************************** 
 │────── 数量统计  
